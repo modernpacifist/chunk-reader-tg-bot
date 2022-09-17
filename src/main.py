@@ -1,86 +1,61 @@
 #!/bin/env python3.9
 
-# import os
-# from dotenv import load_dotenv
-# from telegram.ext import Updater, CommandHandler
-
-# import telegam
-
-# load_dotenv()
-
-# BOT_TOKEN = os.getenv('BOT_TOKEN')
-
-
-# # def hello(bot, updater):
-    # # url = 'https://img.freepik.com/free-photo/the-cat-on-white-background_155003-15381.jpg?w=2000'
-    # # chat_id = updater.message.chat_id
-    # # bot.send_photo(chat_id=chat_id, photo=url)
-
-
-# def start(update: Update, context: CallbackContext):
-    # # chat_id = updater.chat_id
-    # context.bot.send_message()
-
-
-# def main():
-    # updater = Updater(token=BOT_TOKEN)
-    # dp = updater.dispatcher
-    # dp.add_handler(CommandHandler('start', start))
-    # updater.start_polling()
-    # updater.idle()
-
-
-# if __name__ == "__main__":
-    # main()
-
 import os
+import telegram
+import logging
+
 from dotenv import load_dotenv
-from flask import Flask
-from flask import request
-from flask import Response
-import requests
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
 load_dotenv()
+BOT_TOKEN = os.getenv('BOT_TOKEN')
 
-TOKEN = os.getenv('BOT_TOKEN')
-app = Flask(__name__)
-
-
-def parse_message(message):
-    print("message-->",message)
-    chat_id = message['message']['chat']['id']
-    txt = message['message']['text']
-    print("chat_id-->", chat_id)
-    print("txt-->", txt)
-    return chat_id,txt
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
-def tel_send_message(chat_id, text):
-    url = f'https://api.telegram.org/bot{TOKEN}/sendMessage'
-    payload = {
-        'chat_id': chat_id,
-        'text': text
-    }
-
-    return requests.post(url,json=payload)
+def start(update, context):
+    """Send a message when the command /start is issued."""
+    update.message.reply_text('Hi!')
 
 
-@app.route('/', methods=['GET', 'POST'])
-def index():
-    if request.method == 'POST':
-        msg = request.get_json()
+def help(update, context):
+    """Send a message when the command /help is issued."""
+    update.message.reply_text('Help!')
 
-        chat_id,txt = parse_message(msg)
-        if txt == "hi":
-            tel_send_message(chat_id,"Hello!!")
-        else:
-            tel_send_message(chat_id,'from webhook')
 
-        return Response('ok', status=200)
-    else:
-        return "<h1>Welcome!</h1>"
+def echo(update, context):
+    """Echo the user message."""
+    update.message.reply_text(update.message.text)
+
+
+def error(update, context):
+    """Log Errors caused by Updates."""
+    logger.warning('Update "%s" caused error "%s"', update, context.error)
+
+
+def main():
+    updater = Updater(BOT_TOKEN)
+
+    # Get the dispatcher to register handlers
+    dp = updater.dispatcher
+
+    # on different commands - answer in Telegram
+    dp.add_handler(CommandHandler("start", start))
+    dp.add_handler(CommandHandler("help", help))
+    dp.add_handler(MessageHandler(Filters.text, echo))
+
+    # log all errors
+    dp.add_error_handler(error)
+
+    # Start the Bot
+    updater.start_polling()
+
+    # Run the bot until you press Ctrl-C or the process receives SIGINT,
+    # SIGTERM or SIGABRT. This should be used most of the time, since
+    # start_polling() is non-blocking and will stop the bot gracefully.
+    updater.idle()
 
 
 if __name__ == '__main__':
-   app.run(debug=True)
-
+    main()
