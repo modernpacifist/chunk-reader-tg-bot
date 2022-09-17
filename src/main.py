@@ -1,4 +1,5 @@
 #!/bin/env python3.9
+# -*- coding: utf-8 -*-
 
 import os
 import telegram
@@ -15,7 +16,6 @@ logger = logging.getLogger(__name__)
 
 
 def start(update, context):
-    """Send a message when the command /start is issued."""
     update.message.reply_text('Hi!')
 
 
@@ -26,7 +26,13 @@ def help(update, context):
 
 def echo(update, context):
     """Echo the user message."""
-    update.message.reply_text(update.message.text)
+    update.message.reply_text(f'You said: {update.message.text}')
+
+
+def picture(update, context):
+    """Echo the user message."""
+    # update.message.reply_text(f'You said: {update.message.text}')
+    update.message.photo()
 
 
 def error(update, context):
@@ -43,7 +49,8 @@ def main():
     # on different commands - answer in Telegram
     dp.add_handler(CommandHandler("start", start))
     dp.add_handler(CommandHandler("help", help))
-    dp.add_handler(MessageHandler(Filters.text, echo))
+    dp.add_handler(CommandHandler("picture", picture))
+    # dp.add_handler(MessageHandler(Filters.text, echo))
 
     # log all errors
     dp.add_error_handler(error)
