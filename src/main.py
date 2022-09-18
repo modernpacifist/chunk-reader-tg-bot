@@ -32,7 +32,8 @@ def echo(update, context):
 def picture(update, context):
     """Echo the user message."""
     # update.message.reply_text(f'You said: {update.message.text}')
-    update.message.photo()
+    update.message.reply_text("Sending photo...")
+    update.message.send_photo("https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Cat_November_2010-1a.jpg/1200px-Cat_November_2010-1a.jpg")
 
 
 def error(update, context):
