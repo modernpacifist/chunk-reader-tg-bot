@@ -1,6 +1,8 @@
 import pymongo
 
 
-class Database:
-    def __init__(self):
-        self.files = []
+def get_collection():
+    client = pymongo.MongoClient()
+    db = client["database"]
+    col = db["transactions"]
+    return col
