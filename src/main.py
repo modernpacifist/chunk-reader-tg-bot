@@ -22,6 +22,7 @@ def start(update, context):
     update.message.reply_text('Hi!')
 
 
+# bot documentation
 def help(update, context):
     update.message.reply_text("""
 If you never used this bot before use /newbot command
@@ -59,7 +60,6 @@ def unknown_text(update, context):
 
 
 def error(update, context):
-    """Log Errors caused by Updates."""
     logger.warning('Update "%s" caused error "%s"', update, context.error)
 
 
