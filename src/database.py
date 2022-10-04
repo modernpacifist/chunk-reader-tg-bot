@@ -13,9 +13,12 @@ db_collection = os.getenv('MONGO_COLLECTION_NAME')
 
 
 def get_database() -> pymongo.database.Database:
-    try: 
-pymongo.MongoClient(db_uri, retryWrites=False)
-    return 
+    try:
+        mongo_client = pymongo.MongoClient(db_uri, retryWrites=False)
+        return mongo_client[db_name]
+    except Exception as e:
+        print(e)
+        exit(1)
 
 
 def get_data(collection: pymongo.collection.Collection):
@@ -27,10 +30,9 @@ def insert_data(collection: pymongo.collection.Collection):
 
 
 if __name__ == "__main__":
-    mongo_client = get_database()
+    database = get_database()
     # print(type())
 
-    database = mongo_client[db_name]
     collection = database[db_collection]
 
     insert_data(collection)
