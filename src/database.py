@@ -16,17 +16,23 @@ def get_database() -> pymongo.database.Database:
     try:
         mongo_client = pymongo.MongoClient(db_uri, retryWrites=False)
         return mongo_client[db_name]
+
     except Exception as e:
         print(e)
         exit(1)
 
 
-def get_data(collection: pymongo.collection.Collection):
-    return None
-
-
 def insert_data(collection: pymongo.collection.Collection):
-    collection.insert_one({"BookTitle": "War and peace"})
+    try:
+        collection.insert_one(
+            {
+                "OwnerID": 1023,
+                "BookTitle": "War and peace",
+            }
+        )
+
+    except Exception as e:
+        print(e)
 
 
 if __name__ == "__main__":
