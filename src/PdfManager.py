@@ -1,20 +1,25 @@
 import PyPDF2
 import codecs
- 
+
 #create file object variable
 #opening method will be rb
 
 
 if __name__ == "__main__":
+    # windows os sample filename
+    # sampleFileName = "C:\\Users\\vp\\Documents\\books\\Dive_Into_Design_Patterns.pdf"
+
+    # unix os sample filename
     sampleFileName = "C:\\Users\\vp\\Documents\\books\\Dive_Into_Design_Patterns.pdf"
     try:
         pdffileobj = open(sampleFileName, "rb")
     except Exception as e:
         print(e)
+        exit(1)
 
     pdfreader = PyPDF2.PdfFileReader(pdffileobj)
     total_pages_quantity = pdfreader.numPages
-    
+
     for i in range(total_pages_quantity):
         pageobj = pdfreader.getPage(i)
         try:
