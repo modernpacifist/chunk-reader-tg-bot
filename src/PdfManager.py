@@ -1,8 +1,25 @@
 import PyPDF2
 import codecs
 
+from textblob import TextBlob
+
 #create file object variable
 #opening method will be rb
+
+
+class ReadingProgressTracker:
+    def __init__(self, user_id):
+        self._user_id = user_id
+        self._current_tracking_index = 0
+        self._text = ""
+
+
+def text_cleanup(text: str) -> str:
+    cleaned_text = " ".join([word for word in str(text).split()])
+    textblb = TextBlob(cleaned_text)
+    corrected_text = textblb.correct()
+    # return clean_text
+    return str(corrected_text)
 
 
 if __name__ == "__main__":
@@ -23,13 +40,13 @@ if __name__ == "__main__":
     for i in range(total_pages_quantity):
         pageobj = pdfreader.getPage(i)
         try:
-            text = pageobj.extractText().encode("utf-8")
+            # text = pageobj.extractText().encode("utf-8")
+            text = pageobj.extractText()
         except Exception as e:
             print(e)
             continue
 
-        # TODO: sovle problem with artifact chars and encoding
-        with codecs.open("result_text.txt", "a", "utf-8-sig") as result_file:
-            result_file.write(str(text) + '\n')
-
-        print(text)
+        # TODO: solve problem with artifact chars and encoding
+        with open("result_text.txt", "a", encoding="utf-8") as result_file:
+            clean_text = text_cleanup(str(text))
+            result_file.write(clean_text + '\n')
