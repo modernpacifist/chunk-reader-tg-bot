@@ -1,0 +1,5 @@
+pymongo==4.2.0
+PyPDF2==2.11.1
+python-dotenv==0.21.0
+telegram==0.0.1
+textblob==0.17.1
