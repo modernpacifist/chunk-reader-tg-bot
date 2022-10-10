@@ -84,7 +84,7 @@ def _add_handlers(dispatcher, mongodbmanager):
 
 
 def main():
-    try: 
+    try:
         updater = Updater(BOT_TOKEN)
     except Exception as e:
         print(e)

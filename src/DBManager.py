@@ -31,7 +31,7 @@ class MongoDBManager():
         except Exception as e:
             print(e)
             exit(1)
-    
+
     def _get_collection(self, collection_name) -> pymongo.collection.Collection:
         return self._db[collection_name]
 
