@@ -14,7 +14,7 @@ class ReadingProgressTracker:
         self._text = ""
 
 
-def text_cleanup(text: str) -> str:
+def cleanup_text(text: str) -> str:
     cleaned_text = " ".join([word for word in str(text).split()])
     textblb = TextBlob(cleaned_text)
     corrected_text = textblb.correct()
@@ -48,5 +48,5 @@ if __name__ == "__main__":
 
         # TODO: solve problem with artifact chars and encoding
         with open("result_text.txt", "a", encoding="utf-8") as result_file:
-            clean_text = text_cleanup(str(text))
+            clean_text = cleanup_text(str(text))
             result_file.write(clean_text + '\n')

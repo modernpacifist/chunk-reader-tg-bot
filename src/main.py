@@ -5,7 +5,7 @@ import os
 import telegram
 import logging
 
-from ChatClient import ChatClient
+from Client import ChatClient
 
 # telegram imports
 from dotenv import load_dotenv
