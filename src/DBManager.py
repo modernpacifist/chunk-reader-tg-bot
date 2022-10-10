@@ -35,6 +35,9 @@ class MongoDB():
         except Exception as e:
             print(e)
             exit(1)
+    
+    def get_collection(self):
+        return self._db[]
 
     def insert_new_user_data(self, owner_id) -> None:
         try:
@@ -59,8 +62,6 @@ def insert_data(collection: pymongo.collection.Collection):
         )
     except Exception as e:
         print(e)
-
-
 
 
 # if __name__ == "__main__":
