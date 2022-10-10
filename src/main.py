@@ -6,6 +6,7 @@ import telegram
 import logging
 
 from Client import ChatClient
+from DBManager import MongoDB
 
 # telegram imports
 from dotenv import load_dotenv
@@ -14,6 +15,10 @@ from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 load_dotenv()
 
 BOT_TOKEN = os.getenv('BOT_TOKEN')
+DB_URI = os.getenv('MONGO_DB_URI')
+DB_NAME = os.getenv('MONGO_DB_NAME')
+MONGO_USER_COLLECTION_NAME = os.getenv('MONGO_USER_COLLECTION_NAME')
+MONGO_TEXT_COLLECTION_NAME = os.getenv('MONGO_TEXT_COLLECTION_NAME')
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -78,6 +83,12 @@ def _add_handlers(dispatcher):
 
 def main():
     updater = Updater(BOT_TOKEN)
+    mongodb = MongoDB(
+        db_uri=DB_URI,
+        db_name=DB_NAME,
+        db_user_collection=MONGO_USER_COLLECTION_NAME,
+        db_text_collection=MONGO_TEXT_COLLECTION_NAME,
+    )
 
     _add_handlers(updater.dispatcher)
 
