@@ -6,7 +6,7 @@ import telegram
 import logging
 
 from Client import ChatClient
-from DBManager import MongoDB
+from DBManager import MongoDBManager
 
 # telegram imports
 from dotenv import load_dotenv
@@ -25,7 +25,9 @@ logger = logging.getLogger(__name__)
 
 
 def start(update, context):
-    update.message.reply_text('Hi!')
+    # update.message.reply_text('Hi!')
+    uid = update.message.chat.id
+    mongodbmanager.insert_new_user(uid)
 
 
 # bot documentation
@@ -69,7 +71,7 @@ def error(update, context):
     logger.warning('Update "%s" caused error "%s"', update, context.error)
 
 
-def _add_handlers(dispatcher):
+def _add_handlers(dispatcher, mongodbmanager):
     dispatcher.add_handler(CommandHandler("start", start))
     dispatcher.add_handler(CommandHandler("start", start))
     dispatcher.add_handler(CommandHandler("help", help))
@@ -82,15 +84,20 @@ def _add_handlers(dispatcher):
 
 
 def main():
-    updater = Updater(BOT_TOKEN)
-    mongodb = MongoDB(
+    try: 
+        updater = Updater(BOT_TOKEN)
+    except Exception as e:
+        print(e)
+        exit(1)
+
+    mongodbmanager = MongoDBManager(
         db_uri=DB_URI,
         db_name=DB_NAME,
-        db_user_collection=MONGO_USER_COLLECTION_NAME,
-        db_text_collection=MONGO_TEXT_COLLECTION_NAME,
+        db_user_collection_name=MONGO_USER_COLLECTION_NAME,
+        db_text_collection_name=MONGO_TEXT_COLLECTION_NAME,
     )
 
-    _add_handlers(updater.dispatcher)
+    _add_handlers(updater.dispatcher, mongodbmanager)
 
     # Start the Bot
     # start_polling() is non-blocking and will stop the bot gracefully.
