@@ -1,20 +1,13 @@
-import PyPDF2
-import codecs
-
-from textblob import TextBlob
-
 from epub2txt import epub2txt
 
 #create file object variable
 #opening method will be rb
 
 
-def cleanup_text(text: str) -> str:
-    cleaned_text = " ".join([word for word in str(text).split()])
-    textblb = TextBlob(cleaned_text)
-    corrected_text = textblb.correct()
-    # return clean_text
-    return str(corrected_text)
+class EpubManager:
+    @staticmethod
+    def translateEpubToTxt(file):
+        return epub2txt(file)
 
 
 if __name__ == "__main__":
@@ -22,6 +15,7 @@ if __name__ == "__main__":
     # res = Epub2txt(url)
     # print(res)
 
-    filepath = r"C:\Users\vp\Downloads"
-    res = epub2txt(filepath)
-    print(res)
+    filepath = r"C:\\Users\\vp\\Downloads\\1.tmx.epub"
+    with open(filepath) as file:
+        res = EpubManager.translateEpubToTxt(filepath)
+    print(res[:100])

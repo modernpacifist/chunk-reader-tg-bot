@@ -38,3 +38,15 @@ class MongoDBManager():
 
         except Exception as e:
             print(e)
+
+    def insert_text_data(self, owner_id, text_data) -> None:
+        try:
+            self._db_text_collection.insert_one(
+                {
+                    "OwnerID": owner_id,
+                    "TextData": text_data,
+                }
+            )
+
+        except Exception as e:
+            print(e)

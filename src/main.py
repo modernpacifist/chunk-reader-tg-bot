@@ -2,11 +2,13 @@
 # -*- coding: utf-8 -*-
 
 import os
-import telegram
 import logging
+from textwrap import shorten
+import telegram
 
 from Client import ChatClient
 from DBManager import MongoDBManager
+from EpubManager import EpubManager
 
 # telegram imports
 from dotenv import load_dotenv
@@ -25,7 +27,6 @@ logger = logging.getLogger(__name__)
 
 
 def start(update, context):
-    # update.message.reply_text('Hi!')
     uid = update.message.chat.id
     mongodbmanager.insert_new_user(uid)
 
@@ -50,8 +51,39 @@ def uid(update, context):
     update.message.reply_text(f"Your profile is {cuid.__dict__}", parse_mode="html")
 
 
+def downloader(update, context):
+    # receive file
+    context.bot.get_file(update.message.document).download()
+    update.message.reply_text(f"uploaded a file")
+
+    # read file
+    with open("filename", 'wb') as f:
+        context.bot.get_file(update.message.document).download(out=f)
+
+    text = EpubManager.translateEpubToTxt("filename")
+    # print()
+
+    try:
+        os.remove('filename')
+    except Exception:
+        pass
+
+    update.message.reply_text(f"{text[:100]}")
+
+
 def uploadfile(update, context):
-    update.message.reply_text(f'You said: {update.message.text}')
+    # filepath = r"C:\\Users\\vp\\Downloads\\1.tmx.epub"
+    try:
+        telegram.InputFile()
+        # with open(filepath) as file:
+            # res = EpubManager.translateEpubToTxt(filepath)
+            # print(res)
+            # telegram.InputFile(file)
+    except Exception as e:
+        print(e)
+
+    chat_id = update.message.chat.id
+    update.message.reply_text(f'Send me EpubFile {chat_id}')
 
 
 def nextchunk(update, context):
@@ -79,6 +111,7 @@ def _add_handlers(dispatcher):
     dispatcher.add_handler(CommandHandler("nextchunk", nextchunk))
     dispatcher.add_handler(CommandHandler("uid", uid))
     dispatcher.add_handler(MessageHandler(Filters.text, unknown_text))
+    dispatcher.add_handler(MessageHandler(Filters.document, downloader))
     dispatcher.add_error_handler(error)
 
 
