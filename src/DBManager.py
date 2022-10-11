@@ -50,3 +50,13 @@ class MongoDBManager():
 
         except Exception as e:
             print(e)
+
+    def get_owner_files(self, ownder_id) -> None:
+        try:
+            return self._db_text_collection.find(
+                {
+                    "OwnerID": ownder_id,
+                }
+            )
+        except Exception as e:
+            print(e)

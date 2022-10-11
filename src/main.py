@@ -25,6 +25,13 @@ MONGO_TEXT_COLLECTION_NAME = os.getenv('MONGO_TEXT_COLLECTION_NAME')
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+mongodbmanager = MongoDBManager(
+    db_uri=DB_URI,
+    db_name=DB_NAME,
+    db_user_collection_name=MONGO_USER_COLLECTION_NAME,
+    db_text_collection_name=MONGO_TEXT_COLLECTION_NAME,
+)
+
 
 def start(update, context):
     uid = update.message.chat.id
@@ -61,14 +68,24 @@ def downloader(update, context):
         context.bot.get_file(update.message.document).download(out=f)
 
     text = EpubManager.translateEpubToTxt("filename")
-    # print()
+    uid = update.message.chat.id
+    mongodbmanager.insert_text_data(uid, text)
 
     try:
         os.remove('filename')
+        os.remove('*.epub')
     except Exception:
         pass
 
-    update.message.reply_text(f"{text[:100]}")
+
+def get_my_files(update, context):
+    uid = update.message.chat.id
+
+    files = mongodbmanager.get_owner_files(uid)
+    # if files is None:
+    #     update.message.reply_text(f"You have {files} docs")
+
+    update.message.reply_text(f"You have {files} docs")
 
 
 def uploadfile(update, context):
@@ -110,6 +127,7 @@ def _add_handlers(dispatcher):
     dispatcher.add_handler(CommandHandler("uploadfile", uploadfile))
     dispatcher.add_handler(CommandHandler("nextchunk", nextchunk))
     dispatcher.add_handler(CommandHandler("uid", uid))
+    dispatcher.add_handler(CommandHandler("get_my_files", get_my_files))
     dispatcher.add_handler(MessageHandler(Filters.text, unknown_text))
     dispatcher.add_handler(MessageHandler(Filters.document, downloader))
     dispatcher.add_error_handler(error)
@@ -122,12 +140,6 @@ def main():
         print(e)
         exit(1)
 
-    mongodbmanager = MongoDBManager(
-        db_uri=DB_URI,
-        db_name=DB_NAME,
-        db_user_collection_name=MONGO_USER_COLLECTION_NAME,
-        db_text_collection_name=MONGO_TEXT_COLLECTION_NAME,
-    )
 
     _add_handlers(updater.dispatcher)
 
