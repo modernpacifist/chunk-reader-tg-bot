@@ -33,10 +33,9 @@ def start(update, context):
 # bot documentation
 def help(update, context):
     update.message.reply_text("""
-If you never used this bot before use /newbot command
+If you never used this bot before use /start command
 
 Available commands:
-/newuser - add yourself to database, to track your reading progress
 /uploadfile - upload file you wish to read, available formats: pdf
 /nextchunk - read next chunk of uploaded text
 temp:
@@ -71,7 +70,7 @@ def error(update, context):
     logger.warning('Update "%s" caused error "%s"', update, context.error)
 
 
-def _add_handlers(dispatcher, mongodbmanager):
+def _add_handlers(dispatcher):
     dispatcher.add_handler(CommandHandler("start", start))
     dispatcher.add_handler(CommandHandler("start", start))
     dispatcher.add_handler(CommandHandler("help", help))
@@ -97,7 +96,7 @@ def main():
         db_text_collection_name=MONGO_TEXT_COLLECTION_NAME,
     )
 
-    _add_handlers(updater.dispatcher, mongodbmanager)
+    _add_handlers(updater.dispatcher)
 
     # Start the Bot
     # start_polling() is non-blocking and will stop the bot gracefully.

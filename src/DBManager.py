@@ -1,15 +1,6 @@
 #!/bin/env python3.9
 
 import pymongo
-# import os
-
-# from dotenv import load_dotenv
-
-# load_dotenv()
-
-# db_uri = os.getenv('MONGO_DB_URI')
-# db_name = os.getenv('MONGO_DB_NAME')
-# db_collection = os.getenv('MONGO_COLLECTION_NAME')
 
 
 class MongoDBManager():
