@@ -39,11 +39,13 @@ class MongoDBManager():
         except Exception as e:
             print(e)
 
-    def insert_text_data(self, owner_id, text_data) -> None:
+    # inserts new book
+    def insert_text_data(self, owner_id, book_title, text_data) -> None:
         try:
             self._db_text_collection.insert_one(
                 {
                     "OwnerID": owner_id,
+                    "BookTitle": book_title,
                     "TextData": text_data,
                 }
             )
@@ -51,6 +53,7 @@ class MongoDBManager():
         except Exception as e:
             print(e)
 
+    # return titles fo the uploaded books per user
     def get_owner_files(self, ownder_id) -> None:
         try:
             return self._db_text_collection.find(

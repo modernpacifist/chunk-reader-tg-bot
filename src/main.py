@@ -67,10 +67,9 @@ def downloader(update, context):
     # read file
     with open("filename", 'wb') as f:
         context.bot.get_file(update.message.document).download(out=f)
-
-    text = EpubManager.translateEpubToTxt("filename")
-    uid = update.message.chat.id
-    mongodbmanager.insert_text_data(uid, text)
+        text = EpubManager.translateEpubToTxt("filename")
+        uid = update.message.chat.id
+        mongodbmanager.insert_text_data(uid, update.message.document.file_name, text)
 
     try:
         os.remove('filename')
@@ -81,12 +80,17 @@ def downloader(update, context):
 
 def myfiles(update, context):
     uid = update.message.chat.id
-
     files = mongodbmanager.get_owner_files(uid)
-    # if files is None:
-    #     update.message.reply_text(f"You have {files} docs")
 
-    update.message.reply_text(f"You have {files} docs")
+    if files.retrieved == 0:
+        update.message.reply_text(f"You have not uploaded any files yet")
+
+    else:
+        files_list_message = ""
+        for f in files:
+            files_list_message += f"{f.get('BookTitle')}\n"
+
+        update.message.reply_text(f"You have current books:\n {files_list_message}")
 
 
 def uploadfile(update, context):
