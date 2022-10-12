@@ -48,6 +48,7 @@ Available commands:
 /nextchunk - read next chunk of uploaded text
 temp:
 /uid - get your metadata
+/myfiles - get your uploaded books
     """)
 
 
@@ -78,7 +79,7 @@ def downloader(update, context):
         pass
 
 
-def get_my_files(update, context):
+def myfiles(update, context):
     uid = update.message.chat.id
 
     files = mongodbmanager.get_owner_files(uid)
@@ -127,7 +128,7 @@ def _add_handlers(dispatcher):
     dispatcher.add_handler(CommandHandler("uploadfile", uploadfile))
     dispatcher.add_handler(CommandHandler("nextchunk", nextchunk))
     dispatcher.add_handler(CommandHandler("uid", uid))
-    dispatcher.add_handler(CommandHandler("get_my_files", get_my_files))
+    dispatcher.add_handler(CommandHandler("myfiles", myfiles))
     dispatcher.add_handler(MessageHandler(Filters.text, unknown_text))
     dispatcher.add_handler(MessageHandler(Filters.document, downloader))
     dispatcher.add_error_handler(error)
