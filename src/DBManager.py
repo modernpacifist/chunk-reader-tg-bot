@@ -54,12 +54,13 @@ class MongoDBManager():
             print(e)
 
     # return titles fo the uploaded books per user
-    def get_owner_files(self, ownder_id) -> None:
+    def get_owner_files(self, owner_id) -> None:
         try:
-            return self._db_text_collection.find(
+            search_results = self._db_text_collection.find(
                 {
-                    "OwnerID": ownder_id,
+                    "OwnerID": owner_id,
                 }
             )
+            return search_results
         except Exception as e:
             print(e)
