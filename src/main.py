@@ -56,7 +56,7 @@ def uid(update, context):
     uid = update.message.chat.id
     cuid = ChatClient(ID=uid)
 
-    update.message.reply_text(f"Your profile is {cuid.__dict__}", parse_mode="html")
+    update.message.reply_text(f"Your UID: {cuid.__dict__.get('ID')}", parse_mode="html")
 
 
 def downloader(update, context):
@@ -81,6 +81,7 @@ def downloader(update, context):
 def myfiles(update, context):
     uid = update.message.chat.id
     files = mongodbmanager.get_owner_files(uid)
+    print(files.retrieved)
 
     if files.retrieved == 0:
         update.message.reply_text(f"You have not uploaded any files yet")
