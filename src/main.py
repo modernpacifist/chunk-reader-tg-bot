@@ -92,6 +92,12 @@ def myfiles(update, context):
 
         update.message.reply_text(f"You have current books:\n {files_list_message}")
 
+    # files_list_message = ""
+    # for f in files:
+        # files_list_message += f"{f.get('BookTitle')}\n"
+
+    # update.message.reply_text(f"You have current books:\n {files_list_message}")
+
 
 def uploadfile(update, context):
     # filepath = r"C:\\Users\\vp\\Downloads\\1.tmx.epub"
