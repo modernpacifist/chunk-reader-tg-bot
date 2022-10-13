@@ -81,7 +81,6 @@ def downloader(update, context):
 def myfiles(update, context):
     uid = update.message.chat.id
     files = mongodbmanager.get_owner_files(uid)
-    print(files.retrieved)
 
     if files.retrieved == 0:
         update.message.reply_text(f"You have not uploaded any files yet")
