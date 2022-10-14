@@ -35,6 +35,7 @@ mongodbmanager = MongoDBManager(
 
 def start(update, context):
     uid = update.message.chat.id
+    # metadata = update.message.chat
     mongodbmanager.insert_new_user(uid)
 
 
@@ -62,8 +63,12 @@ def uid(update, context):
 # right now this function manages epub to txt conversion
 def downloader(update, context):
     # receive file
-    context.bot.get_file(update.message.document).download()
-    update.message.reply_text(f"uploaded a file")
+    try: 
+        context.bot.get_file(update.message.document).download()
+        update.message.reply_text("uploaded a file")
+    except Exception as e:
+        update.message.reply_text(e)
+        exit(1)
 
     buffer_filename = "filename.buffer"
 

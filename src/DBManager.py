@@ -32,7 +32,7 @@ class MongoDBManager():
             self._db_user_collection.insert_one(
                 {
                     "OwnerID": owner_id,
-                    "BookTitle": "War and peace",
+                    "Metadata": "data",
                 }
             )
 
