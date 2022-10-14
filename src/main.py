@@ -63,7 +63,7 @@ def uid(update, context):
 # right now this function manages epub to txt conversion
 def downloader(update, context):
     # receive file
-    try: 
+    try:
         context.bot.get_file(update.message.document).download()
         update.message.reply_text("uploaded a file")
     except Exception as e:
