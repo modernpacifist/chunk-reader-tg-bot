@@ -59,22 +59,27 @@ def uid(update, context):
     update.message.reply_text(f"Your UID: {cuid.__dict__.get('ID')}", parse_mode="html")
 
 
+# right now this function manages epub to txt conversion
 def downloader(update, context):
     # receive file
     context.bot.get_file(update.message.document).download()
     update.message.reply_text(f"uploaded a file")
 
+    buffer_filename = "filename.buffer"
+
     # read file
-    with open("filename", 'wb') as f:
+    with open(buffer_filename, 'wb') as f:
         context.bot.get_file(update.message.document).download(out=f)
-        text = EpubManager.translateEpubToTxt("filename")
+        text = EpubManager.translateEpubToTxt(buffer_filename)
         uid = update.message.chat.id
         mongodbmanager.insert_text_data(uid, update.message.document.file_name, text)
 
     try:
-        os.remove('filename')
-        os.remove('*.epub')
-    except Exception:
+        for file in os.listdir():
+            if file.endswith(".epub") or file.endswith(".buffer"):
+                os.remove(file)
+    except Exception as e:
+        print(e)
         pass
 
 

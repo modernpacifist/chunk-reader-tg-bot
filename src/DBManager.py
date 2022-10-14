@@ -53,9 +53,10 @@ class MongoDBManager():
         except Exception as e:
             print(e)
 
-    # return titles fo the uploaded books per user
+    # return titles of the uploaded books per user
     def get_owner_files(self, owner_id) -> None:
         try:
+            # must have only one return
             quantity = self._db_text_collection.count_documents(
                 {
                     "OwnerID": owner_id,
