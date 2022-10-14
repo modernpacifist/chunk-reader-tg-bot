@@ -81,22 +81,22 @@ def downloader(update, context):
 def myfiles(update, context):
     uid = update.message.chat.id
     files = mongodbmanager.get_owner_files(uid)
+    print(files)
+    print(files)
+    print(files)
 
-    if files.retrieved == 0:
+    if files:
         update.message.reply_text(f"You have not uploaded any files yet")
-
     else:
         files_list_message = ""
         for f in files:
             files_list_message += f"{f.get('BookTitle')}\n"
-
         update.message.reply_text(f"You have current books:\n {files_list_message}")
 
     # files_list_message = ""
     # for f in files:
         # files_list_message += f"{f.get('BookTitle')}\n"
-
-    # update.message.reply_text(f"You have current books:\n {files_list_message}")
+    # update.message.reply_text(f"You have current books:\n{files_list_message}")
 
 
 def uploadfile(update, context):
