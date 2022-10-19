@@ -5,6 +5,7 @@ import os
 import logging
 from textwrap import shorten
 import telegram
+import numpy as np
 
 from Client import ChatClient
 from DBManager import MongoDBManager
@@ -39,10 +40,13 @@ def start(update, context):
     mongodbmanager.insert_new_user(uid)
 
 
+np.
+
+
 # bot documentation
 def help(update, context):
     update.message.reply_text("""
-If you never used this bot before use /start command
+If you have never used this bot before use /start command
 
 Available commands:
 /uploadfile - upload file you wish to read, available formats: pdf
