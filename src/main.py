@@ -59,7 +59,6 @@ def uid(update, context):
     cuid = ChatClient(ID=uid)
 
     update.message.reply_text(f"Your UID: {cuid.__dict__.get('ID')}", parse_mode="html")
-    logger.level
 
 
 # right now this function manages epub to txt conversion
