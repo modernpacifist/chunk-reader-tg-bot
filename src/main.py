@@ -40,9 +40,6 @@ def start(update, context):
     mongodbmanager.insert_new_user(uid)
 
 
-np.
-
-
 # bot documentation
 def help(update, context):
     update.message.reply_text("""
