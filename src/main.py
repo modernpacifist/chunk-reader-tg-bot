@@ -39,8 +39,8 @@ def start(update, context) -> None:
     # metadata = update.message.chat
     mongodbmanager.insert_new_user(uid)
 
-# bot documentation
 
+# bot documentation
 def help(update, context) -> None:
     update.message.reply_text("""
 If you have never used this bot before use /start command
@@ -63,7 +63,6 @@ def uid(update, context) -> None:
 
 # right now this function manages epub to txt conversion
 def downloader(update, context) -> None:
-    # receive file
     try:
         context.bot.get_file(update.message.document).download()
         update.message.reply_text("uploaded a file")
