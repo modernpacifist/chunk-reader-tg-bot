@@ -121,6 +121,7 @@ def nextchunk(update, context) -> None:
 
 
 def newuser(update, context) -> None:
+    # TODO:  <21-10-22, modernpacifist> #
     update.message.reply_text('You are being added to db')
 
 
@@ -133,7 +134,6 @@ def error(update, context) -> None:
 
 
 def _add_handlers(dispatcher) -> None:
-    dispatcher.add_handler(CommandHandler("start", start))
     dispatcher.add_handler(CommandHandler("start", start))
     dispatcher.add_handler(CommandHandler("help", help))
     dispatcher.add_handler(CommandHandler("newuser", newuser))
@@ -153,8 +153,11 @@ def main():
         print(e)
         exit(1)
 
+    a = 1
+    b = 3
 
-    _add_handlers(updater.dispatcher)
+    if a < b:
+        print("hehe")
 
     # Start the Bot
     # start_polling() is non-blocking and will stop the bot gracefully.
