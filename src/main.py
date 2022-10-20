@@ -34,14 +34,14 @@ mongodbmanager = MongoDBManager(
 )
 
 
-def start(update, context):
+def start(update, context) -> None:
     uid = update.message.chat.id
     # metadata = update.message.chat
     mongodbmanager.insert_new_user(uid)
 
 
 # bot documentation
-def help(update, context):
+def help(update, context) -> None:
     update.message.reply_text("""
 If you have never used this bot before use /start command
 
@@ -54,7 +54,7 @@ temp:
     """)
 
 
-def uid(update, context):
+def uid(update, context) -> None:
     uid = update.message.chat.id
     cuid = ChatClient(ID=uid)
 
@@ -62,7 +62,7 @@ def uid(update, context):
 
 
 # right now this function manages epub to txt conversion
-def downloader(update, context):
+def downloader(update, context) -> None:
     # receive file
     try:
         context.bot.get_file(update.message.document).download()
@@ -89,7 +89,7 @@ def downloader(update, context):
         pass
 
 
-def myfiles(update, context):
+def myfiles(update, context) -> None:
     uid = update.message.chat.id
     files = mongodbmanager.get_owner_files(uid)
 
@@ -102,7 +102,7 @@ def myfiles(update, context):
         update.message.reply_text(f"You have current books:\n{files_list_message}")
 
 
-def uploadfile(update, context):
+def uploadfile(update, context) -> None:
     # filepath = r"C:\\Users\\vp\\Downloads\\1.tmx.epub"
     try:
         telegram.InputFile()
@@ -117,23 +117,23 @@ def uploadfile(update, context):
     update.message.reply_text(f'Send me EpubFile {chat_id}')
 
 
-def nextchunk(update, context):
+def nextchunk(update, context) -> None:
     update.message.reply_text(f'You said: {update.message.text}')
 
 
-def newuser(update, context):
+def newuser(update, context) -> None:
     update.message.reply_text('You are being added to db')
 
 
-def unknown_text(update, context):
+def unknown_text(update, context) -> None:
     update.message.reply_text('Unknown command type /help to get a list of available commands')
 
 
-def error(update, context):
+def error(update, context) -> None:
     logger.warning('Update "%s" caused error "%s"', update, context.error)
 
 
-def _add_handlers(dispatcher):
+def _add_handlers(dispatcher) -> None:
     dispatcher.add_handler(CommandHandler("start", start))
     dispatcher.add_handler(CommandHandler("start", start))
     dispatcher.add_handler(CommandHandler("help", help))
