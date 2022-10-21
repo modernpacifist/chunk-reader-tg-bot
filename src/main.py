@@ -153,8 +153,6 @@ def main():
         print(e)
         exit(1)
 
-    # TODO:  <21-10-22, modernpacifist> #
-
     # Start the Bot
     # start_polling() is non-blocking and will stop the bot gracefully.
     updater.start_polling()
