@@ -153,11 +153,7 @@ def main():
         print(e)
         exit(1)
 
-    a = 1
-    b = 3
-
-    if a < b:
-        print("hehe")
+    # TODO:  <21-10-22, modernpacifist> #
 
     # Start the Bot
     # start_polling() is non-blocking and will stop the bot gracefully.
