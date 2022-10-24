@@ -3,9 +3,7 @@
 
 import os
 import logging
-from textwrap import shorten
 import telegram
-import numpy as np
 
 from Client import ChatClient
 from DBManager import MongoDBManager
@@ -102,13 +100,13 @@ def myfiles(update, context) -> None:
 
 
 def uploadfile(update, context) -> None:
-    # filepath = r"C:\\Users\\vp\\Downloads\\1.tmx.epub"
+    filepath = r"C:\\Users\\vp\\Downloads\\1.tmx.epub"
     try:
-        telegram.InputFile()
-        # with open(filepath) as file:
-            # res = EpubManager.translateEpubToTxt(filepath)
-            # print(res)
-            # telegram.InputFile(file)
+        # telegram.InputFile()
+        with open(filepath) as file:
+            res = EpubManager.translateEpubToTxt(filepath)
+            print(res)
+            telegram.InputFile(file)
     except Exception as e:
         print(e)
 
