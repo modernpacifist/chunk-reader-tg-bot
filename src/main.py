@@ -38,7 +38,7 @@ def start(update, context) -> None:
     mongodbmanager.insert_new_user(uid)
 
 
-# bot documentation
+# bot in-chat documentation
 def help(update, context) -> None:
     update.message.reply_text("""
 If you have never used this bot before use /start command
