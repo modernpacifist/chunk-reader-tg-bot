@@ -4,6 +4,8 @@
 import os
 import logging
 import telegram
+# for local files cleanup 
+import threading
 
 from Client import ChatClient
 from DBManager import MongoDBManager
@@ -31,7 +33,25 @@ mongodbmanager = MongoDBManager(
     db_text_collection_name=MONGO_TEXT_COLLECTION_NAME,
 )
 
+# sample local buffer filename used to download 
+buffer_filename = "filename.buffer"
 
+
+def local_files_cleanup():
+    # TODO: add a check if files were created
+    # cleanup of local files
+    threading.Timer(5.0, local_files_cleanup).start()
+    try:
+        for file in os.listdir():
+            if file.endswith(".epub") or file.endswith(".buffer"):
+                os.remove(file)
+    except Exception as e:
+        print(e)
+    else:
+        print("Local files cleaned up")
+
+
+# tg functions start from here
 def start(update, context) -> None:
     uid = update.message.chat.id
     # metadata = update.message.chat
@@ -63,27 +83,21 @@ def uid(update, context) -> None:
 def downloader(update, context) -> None:
     try:
         context.bot.get_file(update.message.document).download()
-        update.message.reply_text("uploaded a file")
+
+        # read file
+        with open(buffer_filename, 'wb') as f:
+            context.bot.get_file(update.message.document).download(out=f)
+            text = EpubManager.translateEpubToTxt(buffer_filename)
+            uid = update.message.chat.id
+            mongodbmanager.insert_text_data(uid, update.message.document.file_name, text)
+
     except Exception as e:
-        update.message.reply_text(e)
-        exit(1)
-
-    buffer_filename = "filename.buffer"
-
-    # read file
-    with open(buffer_filename, 'wb') as f:
-        context.bot.get_file(update.message.document).download(out=f)
-        text = EpubManager.translateEpubToTxt(buffer_filename)
-        uid = update.message.chat.id
-        mongodbmanager.insert_text_data(uid, update.message.document.file_name, text)
-
-    try:
-        for file in os.listdir():
-            if file.endswith(".epub") or file.endswith(".buffer"):
-                os.remove(file)
-    except Exception as e:
+        update.message.reply_text(f"File was not uploaded due to internal error.\n\nDebug info:\n{str(e)}")
+        # console logging
         print(e)
-        pass
+        return
+
+    update.message.reply_text("Successfully uploaded a file.")
 
 
 def myfiles(update, context) -> None:
@@ -99,6 +113,7 @@ def myfiles(update, context) -> None:
         update.message.reply_text(f"You have current books:\n{files_list_message}")
 
 
+# TODO: implement file upload with command
 def uploadfile(update, context) -> None:
     filepath = r"C:\\Users\\vp\\Downloads\\1.tmx.epub"
     try:
@@ -135,7 +150,7 @@ def _add_handlers(dispatcher) -> None:
     dispatcher.add_handler(CommandHandler("start", start))
     dispatcher.add_handler(CommandHandler("help", help))
     dispatcher.add_handler(CommandHandler("newuser", newuser))
-    dispatcher.add_handler(CommandHandler("uploadfile", uploadfile))
+    # dispatcher.add_handler(CommandHandler("uploadfile", uploadfile))
     dispatcher.add_handler(CommandHandler("nextchunk", nextchunk))
     dispatcher.add_handler(CommandHandler("uid", uid))
     dispatcher.add_handler(CommandHandler("myfiles", myfiles))
@@ -150,6 +165,11 @@ def main():
     except Exception as e:
         print(e)
         exit(1)
+    
+    local_files_cleanup()
+
+    # _add_handlers line is essenstial for command handling
+    _add_handlers(updater.dispatcher)
 
     # Start the Bot
     # start_polling() is non-blocking and will stop the bot gracefully.
