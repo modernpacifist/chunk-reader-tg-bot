@@ -1,5 +1,7 @@
 #!/bin/env python3.9
 
+from msilib.schema import DuplicateFile
+from sys import excepthook
 import pymongo
 
 
@@ -30,22 +32,23 @@ class MongoDBManager():
     def insert_new_user(self, owner_id) -> None:
         # TODO: add a check if user already exists
         try:
-            user_quantity = self._db_user_collection.count_documents(
-                {
-                    "OwnerID": owner_id,
-                }
-            )
             self._db_user_collection.insert_one(
                 {
-                    "OwnerID": owner_id,
+                    # "OwnerID": owner_id,
+                    "_id": owner_id,
                     # new user always has zero books
-                    "OwnerBooks": [],
+                    "OwnerBooks": dict(),
                     "TotalBooks": 0,
                 }
             )
 
+        except pymongo.errors.DuplicateKeyError:
+            return "User already exists in database"
+
         except Exception as e:
-            print(e)
+            return e
+        
+        return "User successfully added to database"
 
     # inserts new book
     # def insert_book(self, book_instance) -> None:

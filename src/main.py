@@ -3,17 +3,14 @@
 
 import os
 import logging
-import telegram
-# for local files cleanup 
+# for local files/buffers parallel cleanup
 import threading
-# for local file search
-import glob
 
 from Client import ChatClient
 from DBManager import MongoDBManager
 from EpubManager import EpubManager
-# telegram imports
     
+# telegram imports
 from dotenv import load_dotenv
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
@@ -58,7 +55,8 @@ def start(update, context) -> None:
     # TODO: start must have a check if user already exists in db
     uid = update.message.chat.id
     # metadata = update.message.chat
-    mongodbmanager.insert_new_user(uid)
+    msg = mongodbmanager.insert_new_user(uid)
+    update.message.reply_text(msg)
 
 
 # bot in-chat documentation
@@ -67,8 +65,9 @@ def help(update, context) -> None:
 If you have never used this bot before use /start command
 
 Available commands:
+/start - start usage with this command, it will store books that you have and your reading progress
 /nextchunk - read next chunk of uploaded text
-temp:
+Not yet implemented:
 /mybooks - print info about your uploaded content
     """)
 
@@ -149,7 +148,7 @@ def error(update, context) -> None:
 
 def _add_handlers(dispatcher) -> None:
     dispatcher.add_handler(CommandHandler("start", start))
-    dispatcher.add_handler(CommandHandler("booklist", mybooks))
+    dispatcher.add_handler(CommandHandler("mybooks", mybooks))
     dispatcher.add_handler(CommandHandler("help", help))
     dispatcher.add_handler(CommandHandler("nextchunk", nextchunk))
     dispatcher.add_handler(CommandHandler("uid", uid))
