@@ -6,7 +6,6 @@
 #     @staticmethod
 #     def translateEpubToTxt(file):
 #         return epub2txt(file)
-
 from epub2txt import epub2txt
 
 

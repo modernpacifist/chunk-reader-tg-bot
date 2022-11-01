@@ -28,12 +28,19 @@ class MongoDBManager():
 
     # must take a Client instance as argument
     def insert_new_user(self, owner_id) -> None:
+        # TODO: add a check if user already exists
         try:
+            user_quantity = self._db_user_collection.count_documents(
+                {
+                    "OwnerID": owner_id,
+                }
+            )
             self._db_user_collection.insert_one(
                 {
                     "OwnerID": owner_id,
                     # new user always has zero books
                     "OwnerBooks": [],
+                    "TotalBooks": 0,
                 }
             )
 
@@ -56,10 +63,12 @@ class MongoDBManager():
         except Exception as e:
             print(e)
 
-    # return titles of the uploaded books per user
     def get_owner_files(self, owner_id) -> None:
+        """
+            return titles(anything else?) of the uploaded books per user
+        """
+        # TODO: function must have only one db request
         try:
-            # must have only one return
             quantity = self._db_text_collection.count_documents(
                 {
                     "OwnerID": owner_id,
