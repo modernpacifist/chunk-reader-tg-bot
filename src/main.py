@@ -6,6 +6,8 @@ import logging
 import telegram
 # for local files cleanup 
 import threading
+# for local file search
+import glob
 
 from Client import ChatClient
 from DBManager import MongoDBManager
@@ -38,17 +40,17 @@ buffer_filename = "filename.buffer"
 
 
 def local_files_cleanup():
-    # TODO: add a check if files were created
+    # TODO: update this to remove files not by timer, but by check if files exist
     # cleanup of local files
-    threading.Timer(5.0, local_files_cleanup).start()
+    # threading.Timer(30.0, local_files_cleanup).start()
+    threading.Timer(30.0, local_files_cleanup).start()
     try:
         for file in os.listdir():
             if file.endswith(".epub") or file.endswith(".buffer"):
                 os.remove(file)
+                print("Local files cleaned up")
     except Exception as e:
         print(e)
-    else:
-        print("Local files cleaned up")
 
 
 # tg functions start from here
