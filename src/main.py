@@ -55,6 +55,7 @@ def local_files_cleanup():
 
 # tg functions start from here
 def start(update, context) -> None:
+    # TODO: start must have a check if user already exists in db
     uid = update.message.chat.id
     # metadata = update.message.chat
     mongodbmanager.insert_new_user(uid)
@@ -66,11 +67,9 @@ def help(update, context) -> None:
 If you have never used this bot before use /start command
 
 Available commands:
-/uploadfile - upload file you wish to read, available formats: pdf
 /nextchunk - read next chunk of uploaded text
 temp:
-/uid - get your metadata
-/myfiles - get your uploaded books
+/mybooks - print info about your uploaded content
     """)
 
 
@@ -91,7 +90,7 @@ def downloader(update, context) -> None:
             context.bot.get_file(update.message.document).download(out=f)
             text = EpubManager.translateEpubToTxt(buffer_filename)
             uid = update.message.chat.id
-            mongodbmanager.insert_text_data(uid, update.message.document.file_name, text)
+            mongodbmanager.insert_book(uid, update.message.document.file_name, text)
 
     except Exception as e:
         update.message.reply_text(f"File was not uploaded due to internal error.\n\nDebug info:\n{str(e)}")
@@ -102,21 +101,24 @@ def downloader(update, context) -> None:
     update.message.reply_text("Successfully uploaded a file.")
 
 
-def myfiles(update, context) -> None:
+def mybooks(update, context) -> None:
     uid = update.message.chat.id
     files = mongodbmanager.get_owner_files(uid)
 
     if files is None:
         update.message.reply_text(f"You have not uploaded any files yet")
     else:
+        # this must be integrated with Book Instance
         files_list_message = ""
-        for f in files:
-            files_list_message += f"{f.get('BookTitle')}\n"
+        for i, f in enumerate(files, start=1):
+            files_list_message += f"{i}: {f.get('BookTitle')}\n"
         update.message.reply_text(f"You have current books:\n{files_list_message}")
 
 
 # TODO: implement file upload with command
 def uploadfile(update, context) -> None:
+    raise NotImplementedError("Command not yet implemented")
+    # update.message.reply_text(f"Command not yet implemented")
     filepath = r"C:\\Users\\vp\\Downloads\\1.tmx.epub"
     try:
         # telegram.InputFile()
@@ -132,12 +134,9 @@ def uploadfile(update, context) -> None:
 
 
 def nextchunk(update, context) -> None:
-    update.message.reply_text(f'You said: {update.message.text}')
-
-
-def newuser(update, context) -> None:
-    # TODO:  <21-10-22, modernpacifist> #
-    update.message.reply_text('You are being added to db')
+    uid = update.message.chat.id
+    files = mongodbmanager.get_owner_files()
+    update.message.reply_text(f"You said: {uid}, {files}")
 
 
 def unknown_text(update, context) -> None:
@@ -150,12 +149,10 @@ def error(update, context) -> None:
 
 def _add_handlers(dispatcher) -> None:
     dispatcher.add_handler(CommandHandler("start", start))
+    dispatcher.add_handler(CommandHandler("booklist", mybooks))
     dispatcher.add_handler(CommandHandler("help", help))
-    dispatcher.add_handler(CommandHandler("newuser", newuser))
-    # dispatcher.add_handler(CommandHandler("uploadfile", uploadfile))
     dispatcher.add_handler(CommandHandler("nextchunk", nextchunk))
     dispatcher.add_handler(CommandHandler("uid", uid))
-    dispatcher.add_handler(CommandHandler("myfiles", myfiles))
     dispatcher.add_handler(MessageHandler(Filters.text, unknown_text))
     dispatcher.add_handler(MessageHandler(Filters.document, downloader))
     dispatcher.add_error_handler(error)

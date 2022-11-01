@@ -32,7 +32,8 @@ class MongoDBManager():
             self._db_user_collection.insert_one(
                 {
                     "OwnerID": owner_id,
-                    "Metadata": "data",
+                    # new user always has zero books
+                    "OwnerBooks": [],
                 }
             )
 
@@ -40,13 +41,15 @@ class MongoDBManager():
             print(e)
 
     # inserts new book
-    def insert_text_data(self, owner_id, book_title, text_data) -> None:
+    # def insert_book(self, book_instance) -> None:
+    # book_content = transalted data from epub to txt
+    def insert_book(self, owner_id, book_title, book_content) -> None:
         try:
             self._db_text_collection.insert_one(
                 {
                     "OwnerID": owner_id,
                     "BookTitle": book_title,
-                    "TextData": text_data,
+                    "TextData": book_content,
                 }
             )
 
