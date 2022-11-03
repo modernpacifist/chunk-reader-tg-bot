@@ -1,6 +1,5 @@
 #!/bin/env python3.9
 
-from sys import excepthook
 import pymongo
 
 
@@ -47,7 +46,7 @@ class MongoDBManager():
         except Exception as e:
             return e
         
-        return "User successfully added to database"
+        return "User was successfully added to database"
 
     # inserts new book
     # def insert_book(self, book_instance) -> None:
