@@ -1,6 +1,5 @@
 #!/bin/env python3.9
 
-from msilib.schema import DuplicateFile
 from sys import excepthook
 import pymongo
 
