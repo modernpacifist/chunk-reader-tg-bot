@@ -7,6 +7,7 @@ import logging
 import threading
 
 from Client import ChatClient
+from Book import Book
 from DBManager import MongoDBManager
 from EpubManager import EpubManager
     
@@ -89,7 +90,9 @@ def downloader(update, context) -> None:
             context.bot.get_file(update.message.document).download(out=f)
             text = EpubManager.translateEpubToTxt(buffer_filename)
             uid = update.message.chat.id
-            mongodbmanager.insert_book(uid, update.message.document.file_name, text)
+            # mongodbmanager.insert_book(uid, update.message.document.file_name, text)
+            book = Book(uid, update.message.document.file_name, text)
+            mongodbmanager.insert_book(book)
 
     except Exception as e:
         update.message.reply_text(f"File was not uploaded due to internal error.\n\nDebug info:\n{str(e)}")
@@ -105,12 +108,12 @@ def mybooks(update, context) -> None:
     files = mongodbmanager.get_owner_files(uid)
 
     if files is None:
-        update.message.reply_text(f"You have not uploaded any files yet")
+        update.message.reply_text(f"You have not uploaded any books yet")
     else:
         # this must be integrated with Book Instance
         files_list_message = ""
-        for i, f in enumerate(files, start=1):
-            files_list_message += f"{i}: {f.get('BookTitle')}\n"
+        for counter, file in enumerate(files, start=1):
+            files_list_message += f"{counter}: {file.get('BookTitle')} {file.get('')}\n"
         update.message.reply_text(f"You have current books:\n{files_list_message}")
 
 

@@ -1,18 +1,19 @@
 class ChatClient:
-    def __init__(self, client_id, books, books_quantity, read_progress):
+    def __init__(self, client_id, books, read_chunk_size=100):
         self.client_id = client_id
         # books probably need to be an instance
         self.books = books
-        self.books_quantity = books_quantity
-        # is this needed?
-        self.read_progress = read_progress
+        self.current_read_target = 0 # book_id
+        self.read_chunk_size = read_chunk_size # 100 chars per chunk
 
     def get_books(self):
         return self.books
 
-    def get_books_quantity(self):
-        return self.books_quantity
+    def get_current_reading_book(self, target_id):
+        """
+        in case user decides to read another book
+        """
+        self.current_read_target = target_id
 
-    # must be in client field
-    def get_read_progress(self):
-        return self.read_progress
+    def get_current_reading_book(self):
+        return self.current_read_target

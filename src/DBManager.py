@@ -51,13 +51,14 @@ class MongoDBManager():
     # inserts new book
     # def insert_book(self, book_instance) -> None:
     # book_content = transalted data from epub to txt
-    def insert_book(self, owner_id, book_title, book_content) -> None:
+    def insert_book(self, book) -> None:
         try:
             self._db_text_collection.insert_one(
                 {
-                    "OwnerID": owner_id,
-                    "BookTitle": book_title,
-                    "TextData": book_content,
+                    "OwnerID": book.owner_id,
+                    "BookTitle": book.title,
+                    "Content": book.content,
+                    "CurrentReadTarget": False,
                 }
             )
 
@@ -81,7 +82,11 @@ class MongoDBManager():
                         "OwnerID": owner_id,
                     }
                 )
+
             return None
 
         except Exception as e:
             print(e)
+    
+    def modify_book_field(self, book) -> None:
+        return None
