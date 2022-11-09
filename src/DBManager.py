@@ -51,6 +51,7 @@ class MongoDBManager():
     # inserts new book
     # def insert_book(self, book_instance) -> None:
     # book_content = transalted data from epub to txt
+    # TODO: no same title books
     def insert_book(self, book) -> None:
         try:
             self._db_text_collection.insert_one(
