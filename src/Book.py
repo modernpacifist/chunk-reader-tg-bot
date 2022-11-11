@@ -3,7 +3,7 @@ class Book:
         self.owner_id = owner_id
         self.title = title
         self.content = content
-        self.read_progress = 0
+        self.current_read_target = False
 
     # def get_read_chunk(self, text_length):
     #     """

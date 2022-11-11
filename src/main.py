@@ -100,6 +100,7 @@ def downloader(update, context) -> None:
             # must increment user total books
             if insert_success:
                 user.qty_of_owned_books += 1
+                user.read_progress[book.title] = 0
                 mongodbmanager.update_user(user)
 
     except Exception as e:
@@ -132,15 +133,14 @@ def mybooks(update, context) -> None:
     uid = update.message.chat.id
     files = mongodbmanager.get_owner_files(uid)
 
-    if files is None:
-        update.message.reply_text(f"You have not uploaded any books yet")
-    else:
-        # this must be integrated with Book Instance
-        files_list_message = ""
-        # instead of counter there must be counter in book record
-        for counter, file in enumerate(files, start=1):
-            files_list_message += f"{counter}: {file.get('BookTitle')}\n"
+    files_list_message = ""
+    for i, file in enumerate(files, start=1):
+        files_list_message += f"{i}: {file.get('title')}\n"
+    
+    if files_list_message != "":
         update.message.reply_text(f"You have current books:\n{files_list_message}")
+    else:
+        update.message.reply_text(f"You have not uploaded any books yet")
 
 
 # TODO: implement file upload with command

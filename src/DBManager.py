@@ -67,12 +67,7 @@ class MongoDBManager():
     def insert_book(self, book) -> bool:
         try:
             self._db_book_collection.insert_one(
-                {
-                    "OwnerID": book.owner_id,
-                    "BookTitle": book.title,
-                    "Content": book.content,
-                    "CurrentReadTarget": False,
-                }
+                book.__dict__,
             )
             return True
 
@@ -85,19 +80,11 @@ class MongoDBManager():
         """
         # TODO: function must have only one db request
         try:
-            quantity = self._db_book_collection.count_documents(
+            return self._db_book_collection.find(
                 {
-                    "OwnerID": owner_id,
+                    "owner_id": owner_id,
                 }
             )
-            if quantity > 0:
-                return self._db_book_collection.find(
-                    {
-                        "OwnerID": owner_id,
-                    }
-                )
-
-            return None
 
         except Exception as e:
             print(e)

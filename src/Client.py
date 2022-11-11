@@ -5,6 +5,8 @@ class ChatClient:
         self.current_read_target = 0 # book_id
         self.read_chunk_size = read_chunk_size # 100 chars per chunk default message length
         self.qty_of_owned_books = 0
+        # self.read_progress = {"book_id": chunk_index}
+        self.read_progress = {}
 
     def get_books(self):
         return self.books
