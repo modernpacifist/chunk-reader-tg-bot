@@ -4,14 +4,14 @@ import pymongo
 
 
 class MongoDBManager():
-    def __init__(self, db_uri, db_name, db_user_collection_name, db_text_collection_name):
+    def __init__(self, db_uri, db_name, db_user_collection_name, db_book_collection_name):
         self._db_uri = db_uri
         # self._db_name = db_name
         self._db = self._get_database(db_name)
         self._db_user_collection = self._get_collection(db_user_collection_name)
-        self._db_text_collection = self._get_collection(db_text_collection_name)
+        self._db_book_collection = self._get_collection(db_book_collection_name)
 
-    # private
+    # private method
     def _get_database(self, db_name) -> pymongo.database.Database:
         try:
             mongo_client = pymongo.MongoClient(self._db_uri, retryWrites=False)
@@ -23,21 +23,17 @@ class MongoDBManager():
             print(e)
             exit(1)
 
+    # private method
     def _get_collection(self, collection_name) -> pymongo.collection.Collection:
         return self._db[collection_name]
 
     # must take a Client instance as argument
-    def insert_new_user(self, owner_id) -> None:
+    # def insert_new_user(self, user_id) -> None:
+    def insert_new_user(self, user) -> None:
         # TODO: add a check if user already exists
         try:
             self._db_user_collection.insert_one(
-                {
-                    # "OwnerID": owner_id,
-                    "_id": owner_id,
-                    # new user always has zero books
-                    "OwnerBooks": dict(),
-                    "TotalBooks": 0,
-                }
+                user.__dict__,
             )
 
         except pymongo.errors.DuplicateKeyError:
@@ -47,6 +43,21 @@ class MongoDBManager():
             return e
         
         return "User was successfully added to database"
+    
+    def update_user(self, user):
+        try:
+            self._db_user_collection.update_one(
+                {
+                    "_id": user._id,
+                },
+                {
+                    "$set": user.__dict__,
+                }
+            )
+
+        except Exception as e:
+            print(e)
+            return e
 
     # inserts new book
     # def insert_book(self, book_instance) -> None:
@@ -54,7 +65,7 @@ class MongoDBManager():
     # TODO: no same title books
     def insert_book(self, book) -> None:
         try:
-            self._db_text_collection.insert_one(
+            self._db_book_collection.insert_one(
                 {
                     "OwnerID": book.owner_id,
                     "BookTitle": book.title,
@@ -72,13 +83,13 @@ class MongoDBManager():
         """
         # TODO: function must have only one db request
         try:
-            quantity = self._db_text_collection.count_documents(
+            quantity = self._db_book_collection.count_documents(
                 {
                     "OwnerID": owner_id,
                 }
             )
             if quantity > 0:
-                return self._db_text_collection.find(
+                return self._db_book_collection.find(
                     {
                         "OwnerID": owner_id,
                     }
