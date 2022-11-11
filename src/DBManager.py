@@ -45,14 +45,35 @@ class MongoDBManager():
         
         return "User was successfully added to database"
     
-    def update_user(self, user):
+    def find_user(self, uid) -> None:
         try:
+            # return self._db_user_collection.find_one({"_id": uid, "using_bot_flag": True})
+            return self._db_user_collection.find_one({"_id": uid})
+
+        except Exception as e:
+            print(e)
+
+    def get_current_users_ids(self) -> None:
+        try:
+            return self._db_user_collection.find(
+                {
+                    "using_bot_flag": True,
+                }
+            )
+
+        except Exception as e:
+            print(e)
+
+    def update_user(self, user, query=None):
+        try:
+            if query is None:
+                query = user.__dict__
             self._db_user_collection.update_one(
                 {
                     "_id": user._id,
                 },
                 {
-                    "$set": user.__dict__,
+                    "$set": query
                 }
             )
 
@@ -80,12 +101,19 @@ class MongoDBManager():
         except Exception as e:
             print(e)
 
-    def get_owner_files(self, owner_id) -> None:
+    def get_user_books(self, owner_id, currently_reading=False) -> None:
         """
             return titles(anything else?) of the uploaded books per user
         """
         # TODO: function must have only one db request
         try:
+            if currently_reading is True:
+                return self._db_book_collection.find(
+                    {
+                        "owner_id": owner_id,
+                    }
+                )
+
             return self._db_book_collection.find(
                 {
                     "owner_id": owner_id,

@@ -1,8 +1,9 @@
 class Book:
-    def __init__(self, owner_id, title, content):
+    def __init__(self, owner_id, title, content, index=0):
         self.owner_id = owner_id
         self.title = title
         self.content = content
+        self.index = index
 
     def get_chunk_to_read(self, text_length):
         """

@@ -68,10 +68,11 @@ def help(update, context) -> None:
 If you have never used this bot before use /start command
 
 Available commands:
-/start - start usage with this command, it will store books that you have and your reading progress
-/nextchunk - read next chunk of uploaded text
+/start - start usage with this command
+/nextchunk - force next chunk of currently reading book
 Not yet implemented:
-/mybooks - print info about your uploaded content
+/mybooks - print info about your uploaded books
+/changebook - TBD
     """)
 
 
@@ -84,7 +85,10 @@ def uid(update, context) -> None:
 
 # right now this function manages epub to txt conversion
 def downloader(update, context) -> None:
+    # this must be taken from db
     uid = update.message.chat.id
+    user = mongodbmanager.find_user(uid)
+
     user = ChatClient(uid)
 
     try:
@@ -101,6 +105,7 @@ def downloader(update, context) -> None:
             if insert_success:
                 user.qty_of_owned_books += 1
                 user.read_progress[book.title] = 0
+
                 mongodbmanager.update_user(user)
 
             else:
@@ -134,16 +139,23 @@ def update(update, context) -> None:
 
 def mybooks(update, context) -> None:
     uid = update.message.chat.id
-    files = mongodbmanager.get_owner_files(uid)
+    owner_books = mongodbmanager.get_user_books(uid)
 
     files_list_message = ""
-    for i, file in enumerate(files, start=1):
-        files_list_message += f"{i}: {file.get('title')}\n"
+    for i, b in enumerate(owner_books, start=1):
+        book = Book(b.owner_id, b.title, b.content)
+        files_list_message += f"{i}: {book.title} {book.read_progress}\n"
 
     if files_list_message != "":
         update.message.reply_text(f"You have current books:\n{files_list_message}")
     else:
         update.message.reply_text(f"You have not uploaded any books yet")
+
+
+# not exactly changebook, but cheange currently reading book
+def changebook(update, context) -> None:
+    uid = update.message.chat.id
+    return None
 
 
 # TODO: implement file upload with command
@@ -166,8 +178,50 @@ def uploadfile(update, context) -> None:
 
 def nextchunk(update, context) -> None:
     uid = update.message.chat.id
-    files = mongodbmanager.get_owner_files()
+    files = mongodbmanager.get_user_books()
+
     update.message.reply_text(f"You said: {uid}, {files}")
+
+
+def feedchunk(update, context) -> None:
+    uids = mongodbmanager.get_current_users_ids()
+
+    res = ""
+    for uid in uids:
+        res += str(f"{uid.get('_id')}\n")
+
+    update.message.reply_text(res)
+
+
+# stop using the bot
+def pause(update, context) -> None:
+    uid = update.message.chat.id
+    db_user = mongodbmanager.find_user(uid)
+
+    user = ChatClient(uid)
+    user.from_dict(db_user)
+
+    user.using_bot_flag = False
+
+    # user.read_chunk_size = db_user.get()
+    mongodbmanager.update_user(user)
+
+    return None
+
+
+def unpause(update, context) -> None:
+    uid = update.message.chat.id
+    db_user = mongodbmanager.find_user(uid)
+
+    user = ChatClient(uid)
+    user.from_dict(db_user)
+
+    user.using_bot_flag = True
+
+    # user.read_chunk_size = db_user.get()
+    mongodbmanager.update_user(user)
+
+    return None
 
 
 def unknown_text(update, context) -> None:
@@ -183,8 +237,15 @@ def _add_handlers(dispatcher) -> None:
     dispatcher.add_handler(CommandHandler("mybooks", mybooks))
     dispatcher.add_handler(CommandHandler("help", help))
     dispatcher.add_handler(CommandHandler("nextchunk", nextchunk))
+    dispatcher.add_handler(CommandHandler("changebook", changebook))
     dispatcher.add_handler(CommandHandler("uid", uid))
     dispatcher.add_handler(CommandHandler("update", update))
+    dispatcher.add_handler(CommandHandler("pause", pause))
+    dispatcher.add_handler(CommandHandler("unpause", unpause))
+
+    # this command must be automatic
+    dispatcher.add_handler(CommandHandler("feedchunk", feedchunk))
+
     dispatcher.add_handler(MessageHandler(Filters.text, unknown_text))
     dispatcher.add_handler(MessageHandler(Filters.document, downloader))
     dispatcher.add_error_handler(error)
