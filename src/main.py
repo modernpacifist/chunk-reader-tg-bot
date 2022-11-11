@@ -85,7 +85,7 @@ def uid(update, context) -> None:
 # right now this function manages epub to txt conversion
 def downloader(update, context) -> None:
     uid = update.message.chat.id
-    # user = ChatClient(uid)
+    user = ChatClient(uid)
 
     try:
         context.bot.get_file(update.message.document).download()
@@ -96,9 +96,11 @@ def downloader(update, context) -> None:
             book_content = EpubManager.translateEpubToTxt(buffer_filename)
             # mongodbmanager.insert_book(uid, update.message.document.file_name, book_content)
             book = Book(uid, update.message.document.file_name, book_content)
-            mongodbmanager.insert_book(book)
+            insert_success = mongodbmanager.insert_book(book)
             # must increment user total books
-            # mongodbmanager.update_user(user)
+            if insert_success:
+                user.qty_of_owned_books += 1
+                mongodbmanager.update_user(user)
 
     except Exception as e:
         update.message.reply_text(f"File was not uploaded due to internal error.\n\nDebug info:\n{str(e)}")
@@ -110,10 +112,11 @@ def downloader(update, context) -> None:
         update.message.reply_text("Successfully uploaded a file.")
 
 
+# debug function
 def update(update, context) -> None:
     uid = update.message.chat.id
     user = ChatClient(uid)
-    user.current_read_target = 100
+    user.current_read_target = 0
 
     try:
         mongodbmanager.update_user(user)

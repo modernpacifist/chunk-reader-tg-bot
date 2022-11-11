@@ -1,5 +1,6 @@
 #!/bin/env python3.9
 
+from re import T
 import pymongo
 
 
@@ -63,7 +64,7 @@ class MongoDBManager():
     # def insert_book(self, book_instance) -> None:
     # book_content = transalted data from epub to txt
     # TODO: no same title books
-    def insert_book(self, book) -> None:
+    def insert_book(self, book) -> bool:
         try:
             self._db_book_collection.insert_one(
                 {
@@ -73,6 +74,7 @@ class MongoDBManager():
                     "CurrentReadTarget": False,
                 }
             )
+            return True
 
         except Exception as e:
             print(e)
