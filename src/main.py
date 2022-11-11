@@ -103,14 +103,17 @@ def downloader(update, context) -> None:
                 user.read_progress[book.title] = 0
                 mongodbmanager.update_user(user)
 
+            else:
+                update.message.reply_text("This book already exists in the database")
+                return
+
     except Exception as e:
         update.message.reply_text(f"File was not uploaded due to internal error.\n\nDebug info:\n{str(e)}")
         # console logging
         print(e)
         return
 
-    finally:
-        update.message.reply_text("Successfully uploaded a file.")
+    update.message.reply_text("Successfully uploaded a file.")
 
 
 # debug function
@@ -121,7 +124,7 @@ def update(update, context) -> None:
 
     try:
         mongodbmanager.update_user(user)
-    
+
     except Exception as e:
         print(e)
 
@@ -136,7 +139,7 @@ def mybooks(update, context) -> None:
     files_list_message = ""
     for i, file in enumerate(files, start=1):
         files_list_message += f"{i}: {file.get('title')}\n"
-    
+
     if files_list_message != "":
         update.message.reply_text(f"You have current books:\n{files_list_message}")
     else:

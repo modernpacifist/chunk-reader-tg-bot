@@ -60,12 +60,18 @@ class MongoDBManager():
             print(e)
             return e
 
-    # inserts new book
-    # def insert_book(self, book_instance) -> None:
-    # book_content = transalted data from epub to txt
-    # TODO: no same title books
+    # inserts new book if no such title already exists
     def insert_book(self, book) -> bool:
         try:
+            # switch with update method later
+            res = self._db_book_collection.count_documents(
+                {
+                    "title": book.title
+                }
+            )
+            if res > 0:
+                return False
+
             self._db_book_collection.insert_one(
                 book.__dict__,
             )
@@ -88,6 +94,6 @@ class MongoDBManager():
 
         except Exception as e:
             print(e)
-    
+
     def modify_book_field(self, book) -> None:
         return None
