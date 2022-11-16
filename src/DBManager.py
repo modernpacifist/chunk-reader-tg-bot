@@ -45,7 +45,7 @@ class MongoDBManager():
         
         return "User was successfully added to database"
     
-    def find_user(self, uid) -> None:
+    def get_user(self, uid) -> None:
         try:
             # return self._db_user_collection.find_one({"_id": uid, "using_bot_flag": True})
             return self._db_user_collection.find_one({"_id": uid})
@@ -76,6 +76,7 @@ class MongoDBManager():
                     "$set": query
                 }
             )
+            return True
 
         except Exception as e:
             print(e)
@@ -130,13 +131,10 @@ class MongoDBManager():
         """
         # TODO: function must have only one db request
         try:
-            # index = self._db_book_collection.find_one(sort=[("index", -1)]).get("index")
-            index = 0
             doc = self._db_book_collection.find_one(sort=[("index", -1)])
             if doc is None:
                 return 1
-            index = doc.get("index") + 1
-            return index
+            return doc.get("index") + 1
 
         except Exception as e:
             print(e)

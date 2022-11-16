@@ -7,7 +7,7 @@ class ChatClient:
         # self.read_progress = {"book_id": chunk_index}
         self.read_progress = dict()
         # self.currently_reading = book_id
-        self.currently_reading = None
+        self.current_read_target = None
         self.books = None
         self.using_bot_flag = True
 

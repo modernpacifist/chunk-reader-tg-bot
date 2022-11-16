@@ -40,7 +40,6 @@ buffer_filename = "filename.buffer"
 def local_files_cleanup():
     # TODO: update this to remove files not by timer, but by check if files exist
     # cleanup of local files
-    # threading.Timer(30.0, local_files_cleanup).start()
     threading.Timer(30.0, local_files_cleanup).start()
     try:
         for file in os.listdir():
@@ -68,8 +67,11 @@ If you have never used this bot before use /start command
 Available commands:
 /start - start usage with this command
 /nextchunk - force next chunk of currently reading book
-Not yet implemented:
 /mybooks - print info about your uploaded books
+/pause - pause usage of the bot, you will stop receiving book chunks
+/continue - continue usage of the bot, you will start receiving book chunks regularly
+
+Not yet implemented:
 /changebook - TBD
     """)
 
@@ -85,7 +87,7 @@ def uid(update, context) -> None:
 def downloader(update, context) -> None:
     # this must be taken from db
     uid = update.message.chat.id
-    user = mongodbmanager.find_user(uid)
+    user = mongodbmanager.get_user(uid)
     user = ChatClient(uid)
 
     try:
@@ -137,9 +139,6 @@ def update(update, context) -> None:
 def mybooks(update, context) -> None:
     uid = update.message.chat.id
     owner_books = mongodbmanager.get_user_books(uid)
-
-    sample = mongodbmanager.get_max_book_index()
-    # update.message.reply_text(sample.__dict__)
 
     try:
         files_list_message = ""
@@ -197,34 +196,38 @@ def feedchunk(update, context) -> None:
 
 
 # stop using the bot
-def pause(update, context) -> None:
+def freeze(update, context) -> None:
     uid = update.message.chat.id
-    db_user = mongodbmanager.find_user(uid)
+    db_user = mongodbmanager.get_user(uid)
 
     user = ChatClient(uid)
     user.from_dict(db_user)
 
-    user.using_bot_flag = False
+    if user.using_bot_flag is True:
+        user.using_bot_flag = False
 
-    # user.read_chunk_size = db_user.get()
-    mongodbmanager.update_user(user)
+        flag = mongodbmanager.update_user(user)
+        if flag is True:
+            update.message.reply_text("You successfully paused your subscription.\nYou will stop receiving book chunks.")
+    else:
+        update.message.reply_text("You already paused your subscription")
 
-    return None
 
-
-def unpause(update, context) -> None:
+def unfreeze(update, context) -> None:
     uid = update.message.chat.id
-    db_user = mongodbmanager.find_user(uid)
+    db_user = mongodbmanager.get_user(uid)
 
     user = ChatClient(uid)
     user.from_dict(db_user)
 
-    user.using_bot_flag = True
+    if user.using_bot_flag is False:
+        user.using_bot_flag = True
 
-    # user.read_chunk_size = db_user.get()
-    mongodbmanager.update_user(user)
-
-    return None
+        flag = mongodbmanager.update_user(user)
+        if flag is True:
+            update.message.reply_text("You successfully unpaused your subscription.\nYou will start receiving book chunks.")
+    else:
+        update.message.reply_text("You already continued your subscription")
 
 
 def unknown_text(update, context) -> None:
@@ -243,8 +246,8 @@ def _add_handlers(dispatcher) -> None:
     dispatcher.add_handler(CommandHandler("changebook", changebook))
     dispatcher.add_handler(CommandHandler("uid", uid))
     dispatcher.add_handler(CommandHandler("update", update))
-    dispatcher.add_handler(CommandHandler("pause", pause))
-    dispatcher.add_handler(CommandHandler("unpause", unpause))
+    dispatcher.add_handler(CommandHandler("pause", freeze))
+    dispatcher.add_handler(CommandHandler("continue", unfreeze))
 
     # this command must be automatic
     dispatcher.add_handler(CommandHandler("feedchunk", feedchunk))
