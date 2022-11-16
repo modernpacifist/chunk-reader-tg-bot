@@ -98,6 +98,9 @@ def downloader(update, context) -> None:
         with open(buffer_filename, 'wb') as f:
             context.bot.get_file(update.message.document).download(out=f)
             book_content = EpubManager.translateEpubToTxt(buffer_filename)
+            ################################
+            print(book_content)
+            ################################
             # mongodbmanager.insert_book(uid, update.message.document.file_name, book_content)
             book = Book(uid, update.message.document.file_name, book_content)
             insert_success = mongodbmanager.insert_book(book)

@@ -6,10 +6,34 @@
 #     @staticmethod
 #     def translateEpubToTxt(file):
 #         return epub2txt(file)
-from epub2txt import epub2txt
+
+
+# from epub2txt import epub2txt
+
+
+# class EpubManager:
+#     @staticmethod
+#     def translateEpubToTxt(file):
+#         return epub2txt(file)
+
+
+import ebooklib
+
+from ebooklib import epub
+from bs4 import BeautifulSoup
+
+
+def to_text(html_item):
+    soup = BeautifulSoup(html_item.get_body_content(), 'html.parser')
+    text = [para.get_text() for para in soup.find_all('p')]
+    return ' '.join(text)
 
 
 class EpubManager:
     @staticmethod
     def translateEpubToTxt(file):
-        return epub2txt(file)
+        book = epub.read_epub(file)
+        items = list(book.get_items_of_type(ebooklib.ITEM_DOCUMENT))
+        return " ".join([to_text(item) for item in items])
+
+        # return epub2txt(file)
