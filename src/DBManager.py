@@ -124,5 +124,22 @@ class MongoDBManager():
         except Exception as e:
             print(e)
 
+    def get_max_book_index(self):
+        """
+            return titles(anything else?) of the uploaded books per user
+        """
+        # TODO: function must have only one db request
+        try:
+            # index = self._db_book_collection.find_one(sort=[("index", -1)]).get("index")
+            index = 0
+            doc = self._db_book_collection.find_one(sort=[("index", -1)])
+            if doc is None:
+                return 1
+            index = doc.get("index") + 1
+            return index
+
+        except Exception as e:
+            print(e)
+
     def modify_book_field(self, book) -> None:
         return None

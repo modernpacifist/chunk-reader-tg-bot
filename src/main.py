@@ -56,8 +56,6 @@ def start(update, context) -> None:
     # TODO: start must have a check if user already exists in db
     uid = update.message.chat.id
     user = ChatClient(uid)
-    # metadata = update.message.chat
-    # msg = mongodbmanager.insert_new_user(uid)
     msg = mongodbmanager.insert_new_user(user)
     update.message.reply_text(msg)
 
@@ -88,18 +86,17 @@ def downloader(update, context) -> None:
     # this must be taken from db
     uid = update.message.chat.id
     user = mongodbmanager.find_user(uid)
-
     user = ChatClient(uid)
 
     try:
+        current_max_book_index = mongodbmanager.get_max_book_index()
         context.bot.get_file(update.message.document).download()
 
         # read file
         with open(buffer_filename, 'wb') as f:
             context.bot.get_file(update.message.document).download(out=f)
             book_content = EpubManager.translateEpubToTxt(buffer_filename)
-            print(book_content)
-            book = Book(uid, update.message.document.file_name, book_content)
+            book = Book(uid, update.message.document.file_name, book_content, current_max_book_index)
             insert_success = mongodbmanager.insert_book(book)
             # must increment user total books
             if insert_success:
@@ -141,10 +138,13 @@ def mybooks(update, context) -> None:
     uid = update.message.chat.id
     owner_books = mongodbmanager.get_user_books(uid)
 
+    sample = mongodbmanager.get_max_book_index()
+    # update.message.reply_text(sample.__dict__)
+
     try:
         files_list_message = ""
         for i, b in enumerate(owner_books, start=1):
-            files_list_message += f"{i}: {b.get('title')}\n"
+            files_list_message += f"{i}: {b.get('title')} index: {b.get('index')}\n"
 
         if files_list_message != "":
             update.message.reply_text(f"You have current books:\n{files_list_message}")

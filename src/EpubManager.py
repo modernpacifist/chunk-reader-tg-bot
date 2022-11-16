@@ -1,27 +1,9 @@
-# this approach can't handle nbsp
-# from epub2txt import epub2txt
-
-
-# class EpubManager:
-#     @staticmethod
-#     def translateEpubToTxt(file):
-#         return epub2txt(file)
-
-
-# from epub2txt import epub2txt
-
-
-# class EpubManager:
-#     @staticmethod
-#     def translateEpubToTxt(file):
-#         return epub2txt(file)
-
-
 import ebooklib
 
 from ebooklib import epub
 from bs4 import BeautifulSoup
 from cleantext import clean
+from epub2txt import epub2txt
 
 
 def to_text(html_item):
@@ -33,9 +15,12 @@ def to_text(html_item):
 class EpubManager:
     @staticmethod
     def translateEpubToTxt(file):
-        book = epub.read_epub(file)
-        items = list(book.get_items_of_type(ebooklib.ITEM_DOCUMENT))
-        raw_text = " ".join([to_text(item) for item in items])
-        return raw_text.replace("\n", " ")
+        try:
+            return epub2txt(file)
 
-        # return epub2txt(file)
+        except Exception as e:
+            print(e)
+            book = epub.read_epub(file)
+            items = list(book.get_items_of_type(ebooklib.ITEM_DOCUMENT))
+            raw_text = " ".join([to_text(item) for item in items])
+            return raw_text.replace("\n", " ")
