@@ -101,6 +101,7 @@ class MongoDBManager():
         except Exception as e:
             print(e)
 
+    # this can return none
     def get_user_books(self, owner_id, currently_reading=False) -> None:
         """
             return titles(anything else?) of the uploaded books per user

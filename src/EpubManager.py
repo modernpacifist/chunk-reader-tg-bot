@@ -21,6 +21,7 @@ import ebooklib
 
 from ebooklib import epub
 from bs4 import BeautifulSoup
+from cleantext import clean
 
 
 def to_text(html_item):
@@ -34,6 +35,7 @@ class EpubManager:
     def translateEpubToTxt(file):
         book = epub.read_epub(file)
         items = list(book.get_items_of_type(ebooklib.ITEM_DOCUMENT))
-        return " ".join([to_text(item) for item in items])
+        raw_text = " ".join([to_text(item) for item in items])
+        return raw_text.replace("\n", " ")
 
         # return epub2txt(file)

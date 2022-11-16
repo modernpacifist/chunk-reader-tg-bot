@@ -98,10 +98,7 @@ def downloader(update, context) -> None:
         with open(buffer_filename, 'wb') as f:
             context.bot.get_file(update.message.document).download(out=f)
             book_content = EpubManager.translateEpubToTxt(buffer_filename)
-            ################################
             print(book_content)
-            ################################
-            # mongodbmanager.insert_book(uid, update.message.document.file_name, book_content)
             book = Book(uid, update.message.document.file_name, book_content)
             insert_success = mongodbmanager.insert_book(book)
             # must increment user total books
@@ -144,15 +141,18 @@ def mybooks(update, context) -> None:
     uid = update.message.chat.id
     owner_books = mongodbmanager.get_user_books(uid)
 
-    files_list_message = ""
-    for i, b in enumerate(owner_books, start=1):
-        book = Book(b.owner_id, b.title, b.content)
-        files_list_message += f"{i}: {book.title} {book.read_progress}\n"
+    try:
+        files_list_message = ""
+        for i, b in enumerate(owner_books, start=1):
+            files_list_message += f"{i}: {b.get('title')}\n"
 
-    if files_list_message != "":
-        update.message.reply_text(f"You have current books:\n{files_list_message}")
-    else:
-        update.message.reply_text(f"You have not uploaded any books yet")
+        if files_list_message != "":
+            update.message.reply_text(f"You have current books:\n{files_list_message}")
+        else:
+            update.message.reply_text(f"You have not uploaded any books yet")
+
+    except Exception as e:
+        update.message.reply_text(f"Internal error: {str(e)}")
 
 
 # not exactly changebook, but cheange currently reading book
