@@ -42,12 +42,11 @@ class MongoDBManager():
 
         except Exception as e:
             return e
-        
+
         return "User was successfully added to database"
-    
+
     def get_user(self, uid) -> None:
         try:
-            # return self._db_user_collection.find_one({"_id": uid, "using_bot_flag": True})
             return self._db_user_collection.find_one({"_id": uid})
 
         except Exception as e:

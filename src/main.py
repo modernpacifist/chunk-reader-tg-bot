@@ -87,8 +87,9 @@ def uid(update, context) -> None:
 def downloader(update, context) -> None:
     # this must be taken from db
     uid = update.message.chat.id
-    user = mongodbmanager.get_user(uid)
+    db_user = mongodbmanager.get_user(uid)
     user = ChatClient(uid)
+    user.from_dict(db_user)
 
     try:
         current_max_book_index = mongodbmanager.get_max_book_index()
@@ -203,6 +204,7 @@ def freeze(update, context) -> None:
     user = ChatClient(uid)
     user.from_dict(db_user)
 
+    # check if user already paused its subscription
     if user.using_bot_flag is True:
         user.using_bot_flag = False
 
@@ -220,6 +222,7 @@ def unfreeze(update, context) -> None:
     user = ChatClient(uid)
     user.from_dict(db_user)
 
+    # check if user already unpaused its subscription
     if user.using_bot_flag is False:
         user.using_bot_flag = True
 
