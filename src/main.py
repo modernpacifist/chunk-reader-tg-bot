@@ -102,15 +102,20 @@ def downloader(update, context) -> None:
             book = Book(uid, update.message.document.file_name, book_content, current_max_book_index)
             insert_success = mongodbmanager.insert_book(book)
             # must increment user total books
-            if insert_success:
-                user.qty_of_owned_books += 1
-                user.read_progress[book.title] = 0
 
-                mongodbmanager.update_user(user)
-
-            else:
+            if insert_success is False:
                 update.message.reply_text("This book already exists in the database")
                 return
+
+            # this line is buggy
+            user.qty_of_owned_books += 1
+            user.read_progress[book.title] = 0
+
+            # check if this is the first book user uploads
+            if user.current_read_target is None:
+                user.current_read_target = book.index
+
+            mongodbmanager.update_user(user)
 
     except Exception as e:
         update.message.reply_text(f"File was not uploaded due to internal error.\n\nDebug info:\n{str(e)}")
@@ -118,7 +123,7 @@ def downloader(update, context) -> None:
         print(e)
         return
 
-    update.message.reply_text("Successfully uploaded a file.")
+    update.message.reply_text("Successfully uploaded the file.")
 
 
 # debug function
@@ -155,9 +160,13 @@ def mybooks(update, context) -> None:
         update.message.reply_text(f"Internal error: {str(e)}")
 
 
-# not exactly changebook, but cheange currently reading book
+# not exactly changebook, but change currently reading book
 def changebook(update, context) -> None:
     uid = update.message.chat.id
+    db_user = mongodbmanager.get_user(uid)
+    user = ChatClient(uid)
+    user.from_dict(db_user)
+
     return None
 
 
@@ -181,7 +190,7 @@ def uploadfile(update, context) -> None:
 
 def nextchunk(update, context) -> None:
     uid = update.message.chat.id
-    files = mongodbmanager.get_user_books()
+    files = mongodbmanager.get_user_books(uid)
 
     update.message.reply_text(f"You said: {uid}, {files}")
 

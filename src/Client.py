@@ -8,7 +8,7 @@ class ChatClient:
         self.read_progress = dict()
         # self.currently_reading = book_id
         self.current_read_target = None
-        self.books = None
+        # self.books = None
         self.using_bot_flag = True
         # 10 hours interval
         self.chunk_feed_interval = 10
