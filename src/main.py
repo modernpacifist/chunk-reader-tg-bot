@@ -209,11 +209,26 @@ def nextchunk(update, context) -> None:
 
     db_book = mongodbmanager.get_current_book(user.current_read_target)
 
-    a = user.read_progress[db_book.get('title')]
-    
-    update.message.reply_text(db_book.get("content")[a:a+user.read_chunk_size])
+    book_content = db_book.get("content")
 
-    user.read_progress[db_book.get('title')] += user.read_chunk_size
+    # gets index of the latest chunk
+    chunk_start = user.read_progress[db_book.get('title')]
+    chunk_end = chunk_start + user.read_chunk_size
+    chunk_end_offset = book_content[chunk_start:].find('.', chunk_end)
+    # chunk_end += chunk_end_offset
+
+    print("start: ", chunk_start)
+    print("end_offset: ", chunk_end_offset)
+    print("chunk_end: ", chunk_end)
+
+    # chunk_content = db_book.get("content")[chunk_start:chunk_end]
+    chunk_content = book_content[chunk_start:chunk_end_offset]
+
+    update.message.reply_text(chunk_content)
+
+    # user.read_progress[db_book.get('title')] += user.read_chunk_size
+    # user.read_progress[db_book.get('title')] += chunk_end_offset - chunk_start
+    user.read_progress[db_book.get('title')] = chunk_end_offset
     mongodbmanager.update_user(user)
 
 
