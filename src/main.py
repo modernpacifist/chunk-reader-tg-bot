@@ -3,9 +3,10 @@
 
 import os
 import logging
-from re import A
 # for local files/buffers parallel cleanup
 import threading
+from time import monotonic
+import telegram
 
 from Client import ChatClient
 from Book import Book
@@ -35,6 +36,13 @@ mongodbmanager = MongoDBManager(
 
 # sample local buffer filename used to download 
 buffer_filename = "filename.buffer"
+
+# beta keyboard
+en_options1 = telegram.KeyboardButton('sample1')
+en_options2 = telegram.KeyboardButton('sample2')
+en_options3 = telegram.KeyboardButton('sample3')
+en_options4 = telegram.KeyboardButton('sample4')
+en_options_kb = telegram.ReplyKeyboardMarkup([[en_options1, en_options2], [en_options3, en_options4]], resize_keyboard=True, one_time_keyboard=True)
 
 
 def local_files_cleanup():
@@ -167,7 +175,11 @@ def changebook(update, context) -> None:
     user = ChatClient(uid)
     user.from_dict(db_user)
 
-    return None
+    user.current_read_target = 2
+
+    mongodbmanager.update_user(user)
+
+    update.message.reply_text(f"Reply with the index of the book you want to read now:")
 
 
 # TODO: implement file upload with command
@@ -190,9 +202,19 @@ def uploadfile(update, context) -> None:
 
 def nextchunk(update, context) -> None:
     uid = update.message.chat.id
-    files = mongodbmanager.get_user_books(uid)
 
-    update.message.reply_text(f"You said: {uid}, {files}")
+    db_user = mongodbmanager.get_user(uid)
+    user = ChatClient(uid)
+    user.from_dict(db_user)
+
+    db_book = mongodbmanager.get_current_book(user.current_read_target)
+
+    a = user.read_progress[db_book.get('title')]
+    
+    update.message.reply_text(db_book.get("content")[a:a+user.read_chunk_size])
+
+    user.read_progress[db_book.get('title')] += user.read_chunk_size
+    mongodbmanager.update_user(user)
 
 
 def feedchunk(update, context) -> None:
@@ -275,7 +297,7 @@ def main():
     except Exception as e:
         print(e)
         exit(1)
-    
+
     local_files_cleanup()
 
     # _add_handlers line is essenstial for command handling

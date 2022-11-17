@@ -1,5 +1,5 @@
 class ChatClient:
-    def __init__(self, client_id, read_chunk_size=100):
+    def __init__(self, client_id, read_chunk_size=500):
         self._id = client_id
         # books probably need to be an instance
         self.read_chunk_size = read_chunk_size # 100 chars per chunk default message length

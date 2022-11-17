@@ -123,7 +123,7 @@ class MongoDBManager():
 
         except Exception as e:
             print(e)
-
+    
     def get_max_book_index(self):
         """
             return titles(anything else?) of the uploaded books per user
@@ -134,6 +134,22 @@ class MongoDBManager():
             if doc is None:
                 return 1
             return doc.get("index") + 1
+
+        except Exception as e:
+            print(e)
+
+    def get_current_book(self, book_index):
+        """
+            return titles(anything else?) of the uploaded books per user
+        """
+        # TODO: function must have only one db request
+        try:
+            doc = self._db_book_collection.find_one(
+                {"index": book_index}
+            )
+            if doc is None:
+                return False
+            return doc
 
         except Exception as e:
             print(e)
