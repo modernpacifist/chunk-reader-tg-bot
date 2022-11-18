@@ -183,24 +183,6 @@ def changebook(update, context) -> None:
     update.message.reply_text(f"Reply with the index of the book you want to read now:")
 
 
-# TODO: implement file upload with command
-def uploadfile(update, context) -> None:
-    raise NotImplementedError("Command not yet implemented")
-    # update.message.reply_text(f"Command not yet implemented")
-    filepath = r"C:\\Users\\vp\\Downloads\\1.tmx.epub"
-    try:
-        # telegram.InputFile()
-        with open(filepath) as file:
-            res = EpubManager.translateEpubToTxt(filepath)
-            print(res)
-            telegram.InputFile(file)
-    except Exception as e:
-        print(e)
-
-    chat_id = update.message.chat.id
-    update.message.reply_text(f'Send me EpubFile {chat_id}')
-
-
 def nextchunk(update, context) -> None:
     uid = update.message.chat.id
 
