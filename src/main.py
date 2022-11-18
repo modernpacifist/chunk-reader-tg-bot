@@ -214,7 +214,7 @@ def nextchunk(update, context) -> None:
     # gets index of the latest chunk
     chunk_start = user.read_progress[db_book.get('title')]
     chunk_end = chunk_start + user.read_chunk_size
-    chunk_end_offset = book_content[chunk_start:].find('.', chunk_end)
+    chunk_end_offset = book_content[chunk_start:].find('.', chunk_end_offset)
     # chunk_end += chunk_end_offset
 
     print("start: ", chunk_start)
