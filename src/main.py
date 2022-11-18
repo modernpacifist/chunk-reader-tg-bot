@@ -196,7 +196,10 @@ def nextchunk(update, context) -> None:
 
     # gets index of the latest chunk
     chunk_start = user.read_progress[db_book.get('title')]
+    # find can return -1 if the char won't be found
     chunk_end = book_content.find('.', chunk_start + user.read_chunk_size) + 1
+    if chunk_end == -1:
+        chunk_end = len(book_content) - 1
     chunk_content = book_content[chunk_start:chunk_end]
 
     update.message.reply_text(chunk_content)
