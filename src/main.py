@@ -100,6 +100,7 @@ def downloader(update, context) -> None:
     user.from_dict(db_user)
 
     try:
+        update.message.reply_text("Uploading...")
         current_max_book_index = mongodbmanager.get_max_book_index()
         context.bot.get_file(update.message.document).download()
 
@@ -131,7 +132,7 @@ def downloader(update, context) -> None:
         print(e)
         return
 
-    update.message.reply_text("Successfully uploaded the file.")
+    update.message.reply_text("Successfully uploaded the book.")
 
 
 # debug function
@@ -213,22 +214,12 @@ def nextchunk(update, context) -> None:
 
     # gets index of the latest chunk
     chunk_start = user.read_progress[db_book.get('title')]
-    chunk_end = chunk_start + user.read_chunk_size
-    chunk_end_offset = book_content[chunk_start:].find('.', chunk_end)
-    # chunk_end += chunk_end_offset
-
-    print("start: ", chunk_start)
-    print("end_offset: ", chunk_end_offset)
-    print("chunk_end: ", chunk_end)
-
-    # chunk_content = db_book.get("content")[chunk_start:chunk_end]
-    chunk_content = book_content[chunk_start:chunk_end_offset]
+    chunk_end = book_content.find('.', chunk_start + user.read_chunk_size) + 1
+    chunk_content = book_content[chunk_start:chunk_end]
 
     update.message.reply_text(chunk_content)
 
-    # user.read_progress[db_book.get('title')] += user.read_chunk_size
-    # user.read_progress[db_book.get('title')] += chunk_end_offset - chunk_start
-    user.read_progress[db_book.get('title')] = chunk_end_offset
+    user.read_progress[db_book.get('title')] = chunk_end
     mongodbmanager.update_user(user)
 
 
