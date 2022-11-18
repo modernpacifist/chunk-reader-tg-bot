@@ -1,6 +1,5 @@
 #!/bin/env python3.9
 
-from re import T
 import pymongo
 
 
@@ -124,7 +123,7 @@ class MongoDBManager():
         except Exception as e:
             print(e)
     
-    def get_max_book_index(self):
+    def get_max_book_index(self) -> int:
         """
             return titles(anything else?) of the uploaded books per user
         """

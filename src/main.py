@@ -5,8 +5,6 @@ import os
 import logging
 # for local files/buffers parallel cleanup
 import threading
-from time import monotonic
-import telegram
 
 from Client import ChatClient
 from Book import Book
@@ -37,12 +35,12 @@ mongodbmanager = MongoDBManager(
 # sample local buffer filename used to download 
 buffer_filename = "filename.buffer"
 
-# beta keyboard
-en_options1 = telegram.KeyboardButton('sample1')
-en_options2 = telegram.KeyboardButton('sample2')
-en_options3 = telegram.KeyboardButton('sample3')
-en_options4 = telegram.KeyboardButton('sample4')
-en_options_kb = telegram.ReplyKeyboardMarkup([[en_options1, en_options2], [en_options3, en_options4]], resize_keyboard=True, one_time_keyboard=True)
+# # beta keyboard
+# en_options1 = telegram.KeyboardButton('sample1')
+# en_options2 = telegram.KeyboardButton('sample2')
+# en_options3 = telegram.KeyboardButton('sample3')
+# en_options4 = telegram.KeyboardButton('sample4')
+# en_options_kb = telegram.ReplyKeyboardMarkup([[en_options1, en_options2], [en_options3, en_options4]], resize_keyboard=True, one_time_keyboard=True)
 
 
 def local_files_cleanup():
