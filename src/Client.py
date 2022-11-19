@@ -16,7 +16,7 @@ class ChatClient:
     def get_book_progress(self, book: dict):
         book_title = book.get('title')
 
-        return float( self.read_progress[book_title]/ book.get('content_length'))
+        return float( self.read_progress[book_title]/ book.get('content_length')) * 100
 
     def get_current_reading_book(self, target_id):
         """

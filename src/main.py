@@ -160,13 +160,11 @@ def mybooks(update, context) -> None:
     try:
         files_list_message = ""
         for i, book in enumerate(owner_books, start=1):
-            files_list_message += f"{i}: {book.get('title')} index: {book.get('index')}\n"
+            files_list_message += f"{i}: {book.get('title')} Index: {book.get('index')}\n"
 
             progress = user.get_book_progress(book)
             if progress is not None:
-                files_list_message = files_list_message[:-1] + f" completion: {progress}%\n"
-
-
+                files_list_message = files_list_message[:-1] + f" Completion: {progress:.2f}%\n"
 
         if files_list_message != "":
             update.message.reply_text(f"You have current books:\n{files_list_message}")
@@ -216,16 +214,6 @@ def nextchunk(update, context) -> None:
     mongodbmanager.update_user(user)
 
 
-def feedchunk(update, context) -> None:
-    uids = mongodbmanager.get_current_users_ids()
-
-    res = ""
-    for uid in uids:
-        res += str(f"{uid.get('_id')}\n")
-
-    update.message.reply_text(res)
-
-
 # stop using the bot
 def freeze(update, context) -> None:
     uid = update.message.chat.id
@@ -263,6 +251,16 @@ def unfreeze(update, context) -> None:
         update.message.reply_text("You already unpaused your subscription")
 
 
+def feedchunk(update, context) -> None:
+    uids = mongodbmanager.get_current_users_ids()
+
+    res = ""
+    for uid in uids:
+        res += str(f"{uid.get('_id')}\n")
+
+    update.message.reply_text(res)
+
+
 def unknown_text(update, context) -> None:
     update.message.reply_text('Unknown command type /help to get a list of available commands')
 
@@ -283,7 +281,7 @@ def _add_handlers(dispatcher) -> None:
     dispatcher.add_handler(CommandHandler("unpause", unfreeze))
 
     # this command must be automatic
-    dispatcher.add_handler(CommandHandler("feedchunk", feedchunk))
+    dispatcher.add_handler(MessageHandler(Filters.text, time, pass_job_queue=True))
 
     dispatcher.add_handler(MessageHandler(Filters.text, unknown_text))
     dispatcher.add_handler(MessageHandler(Filters.document, downloader))
