@@ -12,7 +12,7 @@ from DBManager import MongoDBManager
 from EpubManager import EpubManager
     
 from dotenv import load_dotenv
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, JobQueue
 
 load_dotenv()
 
@@ -251,21 +251,6 @@ def unfreeze(update, context) -> None:
         update.message.reply_text("You already unpaused your subscription")
 
 
-def sayhi(bot, job):
-    job.context.message.reply_text("hi")
-
-
-def feedchunk(update, context) -> None:
-    # uids = mongodbmanager.get_current_users_ids()
-
-    # res = ""
-    # for uid in uids:
-        # res += str(f"{uid.get('_id')}\n")
-
-    # update.message.reply_text(res)
-    job = job_queue.run_repeating(sayhi, 5, context=update)
-
-
 def unknown_text(update, context) -> None:
     update.message.reply_text('Unknown command type /help to get a list of available commands')
 
@@ -276,6 +261,7 @@ def error(update, context) -> None:
 
 def _add_handlers(dispatcher) -> None:
     dispatcher.add_handler(CommandHandler("start", start))
+    # dispatcher.add_handler(CommandHandler("start", start, pass_job_queue=True))
     dispatcher.add_handler(CommandHandler("mybooks", mybooks))
     dispatcher.add_handler(CommandHandler("help", help))
     dispatcher.add_handler(CommandHandler("nextchunk", nextchunk))
@@ -284,9 +270,6 @@ def _add_handlers(dispatcher) -> None:
     dispatcher.add_handler(CommandHandler("update", update))
     dispatcher.add_handler(CommandHandler("pause", freeze))
     dispatcher.add_handler(CommandHandler("unpause", unfreeze))
-
-    # this command must be automatic
-    dispatcher.add_handler(MessageHandler(Filters.text, feedchunk, pass_job_queue=True))
 
     dispatcher.add_handler(MessageHandler(Filters.text, unknown_text))
     dispatcher.add_handler(MessageHandler(Filters.document, downloader))
