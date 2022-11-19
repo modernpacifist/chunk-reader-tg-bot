@@ -75,7 +75,7 @@ Available commands:
 /nextchunk - force next chunk of currently reading book
 /mybooks - print info about your uploaded books
 /pause - pause usage of the bot, you will stop receiving book chunks
-/continue - continue usage of the bot, you will start receiving book chunks regularly
+/unpause - unpause usage of the bot, you will start receiving book chunks regularly
 
 Not yet implemented:
 /changebook - TBD
@@ -84,10 +84,8 @@ Not yet implemented:
 
 def uid(update, context) -> None:
     uid = update.message.chat.id
-    # cuid = ChatClient(ID=uid)
 
     update.message.reply_text(f"Your UID: {uid}", parse_mode="html")
-    # update.message.reply_text(f"Your UID: {cuid.__dict__.get('ID')}", parse_mode="html")
 
 
 # right now this function manages epub to txt conversion
@@ -271,7 +269,7 @@ def _add_handlers(dispatcher) -> None:
     dispatcher.add_handler(CommandHandler("uid", uid))
     dispatcher.add_handler(CommandHandler("update", update))
     dispatcher.add_handler(CommandHandler("pause", freeze))
-    dispatcher.add_handler(CommandHandler("continue", unfreeze))
+    dispatcher.add_handler(CommandHandler("unpause", unfreeze))
 
     # this command must be automatic
     dispatcher.add_handler(CommandHandler("feedchunk", feedchunk))
