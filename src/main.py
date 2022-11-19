@@ -251,14 +251,19 @@ def unfreeze(update, context) -> None:
         update.message.reply_text("You already unpaused your subscription")
 
 
+def sayhi(bot, job):
+    job.context.message.reply_text("hi")
+
+
 def feedchunk(update, context) -> None:
-    uids = mongodbmanager.get_current_users_ids()
+    # uids = mongodbmanager.get_current_users_ids()
 
-    res = ""
-    for uid in uids:
-        res += str(f"{uid.get('_id')}\n")
+    # res = ""
+    # for uid in uids:
+        # res += str(f"{uid.get('_id')}\n")
 
-    update.message.reply_text(res)
+    # update.message.reply_text(res)
+    job = job_queue.run_repeating(sayhi, 5, context=update)
 
 
 def unknown_text(update, context) -> None:
@@ -281,7 +286,7 @@ def _add_handlers(dispatcher) -> None:
     dispatcher.add_handler(CommandHandler("unpause", unfreeze))
 
     # this command must be automatic
-    dispatcher.add_handler(MessageHandler(Filters.text, time, pass_job_queue=True))
+    dispatcher.add_handler(MessageHandler(Filters.text, feedchunk, pass_job_queue=True))
 
     dispatcher.add_handler(MessageHandler(Filters.text, unknown_text))
     dispatcher.add_handler(MessageHandler(Filters.document, downloader))
