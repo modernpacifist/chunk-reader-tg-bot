@@ -105,7 +105,7 @@ def downloader(update, context) -> None:
         with open(buffer_filename, 'wb') as f:
             context.bot.get_file(update.message.document).download(out=f)
             book_content = EpubManager.translateEpubToTxt(buffer_filename)
-            book = Book(uid, update.message.document.file_name, book_content, current_max_book_index)
+            book = Book(uid, update.message.document.file_name, book_content, index=current_max_book_index, content_length=len(book_content))
             insert_success = mongodbmanager.insert_book(book)
             # must increment user total books
 
@@ -152,10 +152,21 @@ def mybooks(update, context) -> None:
     uid = update.message.chat.id
     owner_books = mongodbmanager.get_user_books(uid)
 
+
+    db_user = mongodbmanager.get_user(uid)
+    user = ChatClient(uid)
+    user.from_dict(db_user)
+
     try:
         files_list_message = ""
-        for i, b in enumerate(owner_books, start=1):
-            files_list_message += f"{i}: {b.get('title')} index: {b.get('index')}\n"
+        for i, book in enumerate(owner_books, start=1):
+            files_list_message += f"{i}: {book.get('title')} index: {book.get('index')}\n"
+
+            progress = user.get_book_progress(book)
+            if progress is not None:
+                files_list_message = files_list_message[:-1] + f" completion: {progress}%\n"
+
+
 
         if files_list_message != "":
             update.message.reply_text(f"You have current books:\n{files_list_message}")
@@ -249,7 +260,7 @@ def unfreeze(update, context) -> None:
         if flag is True:
             update.message.reply_text("You successfully unpaused your subscription.\nYou will start receiving book chunks.")
     else:
-        update.message.reply_text("You already continued your subscription")
+        update.message.reply_text("You already unpaused your subscription")
 
 
 def unknown_text(update, context) -> None:
