@@ -18,6 +18,8 @@ class ChatClient:
     def get_book_progress(self, book: dict):
         # this is unsafe
         book_title = book.get('title')
+        if book_title is None:
+            return None
 
         return float( self.read_progress[book_title]/ book.get('content_length')) * 100
 
