@@ -154,7 +154,6 @@ def mybooks(update, context) -> None:
     uid = update.message.chat.id
     owner_books = mongodbmanager.get_user_books(uid)
 
-
     db_user = mongodbmanager.get_user(uid)
     user = ChatClient(uid)
     user.from_dict(db_user)

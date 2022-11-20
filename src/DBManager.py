@@ -101,19 +101,12 @@ class MongoDBManager():
             print(e)
 
     # this can return none
-    def get_user_books(self, owner_id, currently_reading=False) -> None:
+    def get_user_books(self, owner_id) -> None:
         """
             return titles(anything else?) of the uploaded books per user
         """
         # TODO: function must have only one db request
         try:
-            if currently_reading is True:
-                return self._db_book_collection.find(
-                    {
-                        "owner_id": owner_id,
-                    }
-                )
-
             return self._db_book_collection.find(
                 {
                     "owner_id": owner_id,
