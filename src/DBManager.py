@@ -99,6 +99,7 @@ class MongoDBManager():
 
         except Exception as e:
             print(e)
+            return False
 
     # this can return none
     def get_user_books(self, owner_id) -> None:
