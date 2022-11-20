@@ -29,7 +29,7 @@ class MongoDBManager():
 
     # must take a Client instance as argument
     # def insert_new_user(self, user_id) -> None:
-    def insert_new_user(self, user) -> None:
+    def insert_new_user(self, user) -> str:
         # TODO: add a check if user already exists
         try:
             self._db_user_collection.insert_one(
@@ -122,7 +122,7 @@ class MongoDBManager():
 
         except Exception as e:
             print(e)
-    
+
     def get_max_book_index(self) -> int:
         """
             return titles(anything else?) of the uploaded books per user
@@ -153,5 +153,3 @@ class MongoDBManager():
         except Exception as e:
             print(e)
 
-    def modify_book_field(self, book) -> None:
-        return None

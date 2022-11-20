@@ -60,7 +60,9 @@ def local_files_cleanup():
 def start(update, context) -> None:
     # TODO: start must have a check if user already exists in db
     uid = update.message.chat.id
-    user = ChatClient(uid)
+    uname = update.message.chat.name
+
+    user = ChatClient(uid, uname)
     msg = mongodbmanager.insert_new_user(user)
     update.message.reply_text(msg)
 
@@ -162,9 +164,9 @@ def mybooks(update, context) -> None:
         for i, book in enumerate(owner_books, start=1):
             files_list_message += f"{i}: {book.get('title')} Index: {book.get('index')}\n"
 
-            progress = user.get_book_progress(book)
-            if progress is not None:
-                files_list_message = files_list_message[:-1] + f" Completion: {progress:.2f}%\n"
+            book_read_progress = user.get_book_progress(book)
+            if book_read_progress is not None:
+                files_list_message = files_list_message[:-1] + f" Completion: {book_read_progress:.2f}%\n"
 
         if files_list_message != "":
             update.message.reply_text(f"You have current books:\n{files_list_message}")
@@ -201,21 +203,23 @@ def nextchunk(update, context) -> None:
     book_content = db_book.get("content")
 
     # gets index of the latest chunk
-    chunk_start = user.read_progress[db_book.get('title')]
+    chunk_start = user.read_progress[db_book.get("title")]
     # find can return -1 if the char won't be found
     chunk_end = book_content.find('.', chunk_start + user.read_chunk_size) + 1
     if chunk_end == -1:
         chunk_end = len(book_content) - 1
+
+    # check chunk_content size
     chunk_content = book_content[chunk_start:chunk_end]
 
     update.message.reply_text(chunk_content)
 
-    user.read_progress[db_book.get('title')] = chunk_end
+    user.read_progress[db_book.get("title")] = chunk_end
     mongodbmanager.update_user(user)
 
 
 # stop using the bot
-def freeze(update, context) -> None:
+def pause(update, context) -> None:
     uid = update.message.chat.id
     db_user = mongodbmanager.get_user(uid)
 
@@ -229,11 +233,12 @@ def freeze(update, context) -> None:
         flag = mongodbmanager.update_user(user)
         if flag is True:
             update.message.reply_text("You successfully paused your subscription.\nYou will stop receiving book chunks.")
+
     else:
         update.message.reply_text("You already paused your subscription")
 
 
-def unfreeze(update, context) -> None:
+def unpause(update, context) -> None:
     uid = update.message.chat.id
     db_user = mongodbmanager.get_user(uid)
 
@@ -247,16 +252,17 @@ def unfreeze(update, context) -> None:
         flag = mongodbmanager.update_user(user)
         if flag is True:
             update.message.reply_text("You successfully unpaused your subscription.\nYou will start receiving book chunks.")
+
     else:
         update.message.reply_text("You already unpaused your subscription")
 
 
 def unknown_text(update, context) -> None:
-    update.message.reply_text('Unknown command type /help to get a list of available commands')
+    update.message.reply_text("Unknown command type /help to get a list of available commands")
 
 
 def error(update, context) -> None:
-    logger.warning('Update "%s" caused error "%s"', update, context.error)
+    logger.warning(f"Update {update} caused error {context.error}")
 
 
 def _add_handlers(dispatcher) -> None:
@@ -268,8 +274,8 @@ def _add_handlers(dispatcher) -> None:
     dispatcher.add_handler(CommandHandler("changebook", changebook))
     dispatcher.add_handler(CommandHandler("uid", uid))
     dispatcher.add_handler(CommandHandler("update", update))
-    dispatcher.add_handler(CommandHandler("pause", freeze))
-    dispatcher.add_handler(CommandHandler("unpause", unfreeze))
+    dispatcher.add_handler(CommandHandler("pause", pause))
+    dispatcher.add_handler(CommandHandler("unpause", unpause))
 
     dispatcher.add_handler(MessageHandler(Filters.text, unknown_text))
     dispatcher.add_handler(MessageHandler(Filters.document, downloader))
@@ -297,5 +303,5 @@ def main():
     updater.idle()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
