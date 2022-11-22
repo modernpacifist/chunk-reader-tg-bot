@@ -60,7 +60,7 @@ def local_files_cleanup():
 def start(update, context) -> None:
     # TODO: start must have a check if user already exists in db
     uid = update.message.chat.id
-    uname = update.message.chat.name
+    uname = update.message.chat.first_name
 
     user = ChatClient(uid, uname)
     msg = mongodbmanager.insert_new_user(user)
