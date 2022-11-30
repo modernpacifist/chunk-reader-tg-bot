@@ -78,10 +78,8 @@ Available commands:
 /mybooks - print info about your uploaded books
 /pause - pause usage of the bot, you will stop receiving book chunks
 /unpause - unpause usage of the bot, you will start receiving book chunks regularly
-
-Not yet implemented:
-/changebook - TBD
-    """)
+/changebook - change currently reading book by specifying index in the argument "/changebook <number>"
+""")
 
 
 def uid(update, context) -> None:
@@ -179,6 +177,10 @@ def mybooks(update, context) -> None:
 
 # not exactly changebook, but change currently reading book
 def changebook(update, context) -> None:
+    # TODO: add a choose index functionality out of user-owned book indices
+    # TODO: add a check if number was specified correctly by the user
+    # TODO: add a check if book was deleted and current read target will be automatically updated with the new index
+
     args = context.args
     if len(args) != 1:
         update.message.reply_text(f"You must specify only one argument\nYou specified: {len(args)}")
