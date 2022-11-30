@@ -165,6 +165,7 @@ def mybooks(update, context) -> None:
 
             book_read_progress = user.get_book_progress(book)
             if book_read_progress is not None:
+                # slices \n from default line
                 files_list_message = files_list_message[:-1] + f" Completion: {book_read_progress:.2f}%\n"
 
         if files_list_message != "":
@@ -182,9 +183,6 @@ def changebook(update, context) -> None:
     if len(args) != 1:
         update.message.reply_text(f"You must specify only one argument\nYou specified: {len(args)}")
         return
-
-    for i in context.args:
-        update.message.reply_text(i)
 
     uid = update.message.chat.id
     db_user = mongodbmanager.get_user(uid)
