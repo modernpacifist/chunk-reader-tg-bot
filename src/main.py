@@ -178,6 +178,14 @@ def mybooks(update, context) -> None:
 
 # not exactly changebook, but change currently reading book
 def changebook(update, context) -> None:
+    args = context.args
+    if len(args) != 1:
+        update.message.reply_text(f"You must specify only one argument\nYou specified: {len(args)}")
+        return
+
+    for i in context.args:
+        update.message.reply_text(i)
+
     uid = update.message.chat.id
     db_user = mongodbmanager.get_user(uid)
     user = ChatClient(uid)
@@ -270,7 +278,7 @@ def _add_handlers(dispatcher) -> None:
     dispatcher.add_handler(CommandHandler("mybooks", mybooks))
     dispatcher.add_handler(CommandHandler("help", help))
     dispatcher.add_handler(CommandHandler("nextchunk", nextchunk))
-    dispatcher.add_handler(CommandHandler("changebook", changebook))
+    dispatcher.add_handler(CommandHandler("changebook", changebook, pass_args=True))
     dispatcher.add_handler(CommandHandler("uid", uid))
     dispatcher.add_handler(CommandHandler("update", update))
     dispatcher.add_handler(CommandHandler("pause", pause))
