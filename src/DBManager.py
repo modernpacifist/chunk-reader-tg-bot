@@ -140,10 +140,7 @@ class MongoDBManager():
             doc = self._db_book_collection.find_one(
                 {"index": book_index}
             )
-            if doc is None:
-                return False
             return doc
 
         except Exception as e:
             print(e)
-

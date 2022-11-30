@@ -183,13 +183,15 @@ def changebook(update, context) -> None:
     if len(args) != 1:
         update.message.reply_text(f"You must specify only one argument\nYou specified: {len(args)}")
         return
+    
+    new_book_index = int(args[0])
 
     uid = update.message.chat.id
     db_user = mongodbmanager.get_user(uid)
     user = ChatClient(uid)
     user.from_dict(db_user)
 
-    user.current_read_target = 2
+    user.current_read_target = new_book_index
 
     mongodbmanager.update_user(user)
 
@@ -204,6 +206,9 @@ def nextchunk(update, context) -> None:
     user.from_dict(db_user)
 
     db_book = mongodbmanager.get_current_book(user.current_read_target)
+    if db_book is None:
+        update.message.reply_text(f"Book with index {user.current_read_target} not found\nChange your current book")
+        return
 
     book_content = db_book.get("content")
 
