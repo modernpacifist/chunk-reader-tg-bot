@@ -180,6 +180,8 @@ def changebook(update, context) -> None:
     # TODO: add a choose index functionality out of user-owned book indices
     # TODO: add a check if number was specified correctly by the user
     # TODO: add a check if book was deleted and current read target will be automatically updated with the new index
+    # TODO: check if current book index exists
+    # BUG: other users can read somebody else's book if they guess its index 
 
     args = context.args
     if len(args) != 1:
