@@ -117,6 +117,7 @@ def downloader(update, context) -> None:
             # this line is buggy
             user.qty_of_owned_books += 1
             user.read_progress[book.title] = 0
+            user.owned_book_indices.append(book.index)
 
             # check if this is the first book user uploads
             if user.current_read_target is None:
@@ -217,7 +218,7 @@ def changechunksize(update, context) -> None:
         update.message.reply_text(str(e))
         return
     
-    if new_chunk_size > 4000:
+    if new_chunk_size > 2000:
         update.message.reply_text("Chunk size must not exceed 4000")
         return
 
