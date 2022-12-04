@@ -218,8 +218,8 @@ def changechunksize(update, context) -> None:
         update.message.reply_text(str(e))
         return
     
-    if new_chunk_size > 2000:
-        update.message.reply_text("Chunk size must not exceed 4000")
+    if new_chunk_size > 2000 or new_chunk_size < 1:
+        update.message.reply_text("Chunk size must not exceed 4000 and be at least 1")
         return
 
     uid = update.message.chat.id
