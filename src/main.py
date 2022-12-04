@@ -79,6 +79,7 @@ Available commands:
 /pause - pause usage of the bot, you will stop receiving book chunks
 /unpause - unpause usage of the bot, you will start receiving book chunks regularly
 /changebook - change currently reading book by specifying index in the argument "/changebook <number>"
+/changechunksize - change size of receiving book chunks "/changechunksize <number>"
 """)
 
 
@@ -185,8 +186,12 @@ def changebook(update, context) -> None:
     if len(args) != 1:
         update.message.reply_text(f"You must specify only one argument\nYou specified: {len(args)}")
         return
-    
-    new_book_index = int(args[0])
+
+    try:
+        new_book_index = int(args[0])
+    except Exception as e:
+        update.message.reply_text(str(e))
+        return
 
     uid = update.message.chat.id
     db_user = mongodbmanager.get_user(uid)
@@ -197,7 +202,35 @@ def changebook(update, context) -> None:
 
     mongodbmanager.update_user(user)
 
-    update.message.reply_text(f"Reply with the index of the book you want to read now:")
+    update.message.reply_text(f"Current book was successfully changed")
+
+
+def changechunksize(update, context) -> None:
+    args = context.args
+    if len(args) != 1:
+        update.message.reply_text(f"You must specify only one argument\nYou specified: {len(args)}")
+        return
+
+    try:
+        new_chunk_size = int(args[0])
+    except Exception as e:
+        update.message.reply_text(str(e))
+        return
+    
+    if new_chunk_size > 4000:
+        update.message.reply_text("Chunk size must not exceed 4000")
+        return
+
+    uid = update.message.chat.id
+    db_user = mongodbmanager.get_user(uid)
+    user = ChatClient(uid)
+    user.from_dict(db_user)
+
+    user.read_chunk_size = new_chunk_size
+
+    mongodbmanager.update_user(user)
+
+    update.message.reply_text(f"Chunk size successfully changed")
 
 
 def nextchunk(update, context) -> None:
@@ -284,6 +317,7 @@ def _add_handlers(dispatcher) -> None:
     dispatcher.add_handler(CommandHandler("help", help))
     dispatcher.add_handler(CommandHandler("nextchunk", nextchunk))
     dispatcher.add_handler(CommandHandler("changebook", changebook, pass_args=True))
+    dispatcher.add_handler(CommandHandler("changechunksize", changechunksize, pass_args=True))
     dispatcher.add_handler(CommandHandler("uid", uid))
     dispatcher.add_handler(CommandHandler("update", update))
     dispatcher.add_handler(CommandHandler("pause", pause))
