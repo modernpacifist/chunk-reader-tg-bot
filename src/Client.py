@@ -14,6 +14,7 @@ class ChatClient:
         # 10 hours interval
         self.chunk_feed_interval = 10
         self.admin = False
+        self.owned_book_indices = []
 
     def get_book_progress(self, book: dict):
         # this is unsafe
