@@ -202,6 +202,20 @@ def changebook(update, context) -> None:
     update.message.reply_text(f"Reply with the index of the book you want to read now:")
 
 
+# TODO: add a flag to book doc as {shared: true/false}
+def charebook(update, context) -> None:
+    args = context.args
+    if len(args) != 1:
+        update.message.reply_text(f"You must specify only one argument\nYou specified: {len(args)}")
+        return
+
+    book_index = int(args[0])
+
+
+
+    update.message.reply_text(f"You successfully shared a book with index {book_index}")
+
+
 def nextchunk(update, context) -> None:
     uid = update.message.chat.id
 
