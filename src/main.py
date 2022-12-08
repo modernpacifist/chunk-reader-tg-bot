@@ -174,7 +174,7 @@ def mybooks(update, context) -> None:
 
             # double check this code later
             if user.current_read_target == book.get('index'):
-                currently_reading = f"Title: \"{book.get('title')}\" Index: {book.get('index')}\n"
+                currently_reading = f"Title: \"{book.get('title')}\" Index: {book.get('index')} Completion: {book_read_progress:.2f}%\n"
 
         if files_list_message != "":
             update.message.reply_text(f"Currently reading:\n{currently_reading}\nYour library:\n{files_list_message}")
