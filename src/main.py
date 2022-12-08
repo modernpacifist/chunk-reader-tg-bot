@@ -116,6 +116,7 @@ def downloader(update, context) -> None:
 
             # this line is buggy
             user.qty_of_owned_books += 1
+
             if user.read_progress.get(book.title) is None:
                 user.read_progress[book.title] = 0
             
@@ -171,8 +172,12 @@ def mybooks(update, context) -> None:
                 # slices \n from default line
                 files_list_message = files_list_message[:-1] + f" Completion: {book_read_progress:.2f}%\n"
 
+            # double check this code later
+            if user.current_read_target == book.get('index'):
+                currently_reading = f"Title: \"{book.get('title')}\" Index: {book.get('index')}\n"
+
         if files_list_message != "":
-            update.message.reply_text(f"You have current books:\n{files_list_message}")
+            update.message.reply_text(f"Currently reading:\n{currently_reading}\nYour library:\n{files_list_message}")
         else:
             update.message.reply_text(f"You have not uploaded any books yet")
 
