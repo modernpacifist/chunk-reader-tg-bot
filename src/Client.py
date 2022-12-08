@@ -21,12 +21,16 @@ class ChatClient:
         book_title = book.get('title')
         if book_title is None:
             return None
-        
+
         user_read_progress = self.read_progress[book_title]
         if user_read_progress == 0:
             return None
 
-        return float(user_read_progress / book.get('content_length')) * 100
+        book_content_length = book.get('content_length')
+        if book_content_length is None:
+            book_content_length = len(book.get('content'))
+
+        return float(user_read_progress / book_content_length) * 100
 
     def get_current_reading_book(self, target_id):
         """

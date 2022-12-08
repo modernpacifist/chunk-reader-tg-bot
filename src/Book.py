@@ -6,4 +6,3 @@ class Book:
         self.index = index
         self.content_length = content_length
         self.shared = False
-
