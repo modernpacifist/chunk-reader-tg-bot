@@ -116,9 +116,11 @@ def downloader(update, context) -> None:
 
             # this line is buggy
             user.qty_of_owned_books += 1
-            if user.read_progress[book.title] is None:
+            if user.read_progress.get(book.title) is None:
                 user.read_progress[book.title] = 0
-            user.owned_book_indices.append(book.index)
+            
+            if book.index not in user.owned_book_indices:
+                user.owned_book_indices.append(book.index)
 
             # check if this is the first book user uploads
             if user.current_read_target is None:
