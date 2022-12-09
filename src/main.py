@@ -174,6 +174,7 @@ def mybooks(update, context) -> None:
 
             # double check this code later
             if user.current_read_target == book.get('index'):
+                # BUG: currently_reading is possibly unbound
                 currently_reading = f"Title: \"{book.get('title')}\" Index: {book.get('index')} Completion: {book_read_progress:.2f}%\n"
 
         if files_list_message != "":
