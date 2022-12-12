@@ -190,9 +190,7 @@ def mybooks(update, context) -> None:
 # not exactly changebook, but change currently reading book
 def changebook(update, context) -> None:
     # TODO: add a choose index functionality out of user-owned book indices
-    # TODO: add a check if number was specified correctly by the user
     # TODO: add a check if book was deleted and current read target will be automatically updated with the new index
-    # TODO: check if current book index exists
     # BUG: other users can read somebody else's book if they guess its index 
 
     args = context.args
@@ -210,11 +208,17 @@ def changebook(update, context) -> None:
     except Exception as e:
         update.message.reply_text(str(e))
         return
+    
+    # TODO: check if current book index exists, and it is owned by the user
 
     uid = update.message.chat.id
     db_user = mongodbmanager.get_user(uid)
     user = ChatClient(uid)
     user.from_dict(db_user)
+
+    if not new_book_index in user.owned_book_indices:
+        update.message.reply_text(f"You do not own book with specified index {new_book_index}")
+        return
 
     user.current_read_target = new_book_index
 
