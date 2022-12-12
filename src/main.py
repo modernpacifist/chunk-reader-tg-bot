@@ -239,10 +239,16 @@ def changebook(update, context) -> None:
 
     # if not new_book_index in user.owned_book_indices and db_book.get('shared') is False:
     if not new_book_index in user.owned_book_indices and db_book.get('shared') is False:
-        update.message.reply_text(f"You do not own book with specified index {new_book_index}")
+        update.message.reply_text(f"You do not own book with index: {new_book_index}")
         return
 
     user.current_read_target = new_book_index
+    if db_book.get('shared'):
+        update.message.reply_text(f"You are reading a shared book with index: {new_book_index}")
+        shared_book_title = db_book.get("title")
+        if user.read_progress.get(shared_book_title) is None:
+            user.read_progress[shared_book_title] = 0
+
     mongodbmanager.update_user(user)
     update.message.reply_text(f"Current book was successfully changed")
 
