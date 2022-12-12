@@ -131,14 +131,16 @@ class MongoDBManager():
         except Exception as e:
             print(e)
 
-    def get_book(self, book_index):
+    def get_book(self, book_index, query=None):
         """
             return titles(anything else?) of the uploaded books per user
         """
         # TODO: function must have only one db request
         try:
+            if query is None:
+                query = {"index": book_index}
             doc = self._db_book_collection.find_one(
-                {"index": book_index}
+                query
             )
             return doc
 
