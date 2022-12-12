@@ -106,7 +106,6 @@ class MongoDBManager():
         """
             return titles(anything else?) of the uploaded books per user
         """
-        # TODO: function must have only one db request
         try:
             return self._db_book_collection.find(
                 {

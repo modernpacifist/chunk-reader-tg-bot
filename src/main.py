@@ -64,7 +64,14 @@ def start(update, context) -> None:
     uname = update.message.chat.first_name
 
     user = ChatClient(uid, uname)
+    book_indices = mongodbmanager.get_user_books(uid)
+
+    indices = [i.get('index') for i in book_indices]
+    if indices is not None:
+        user.owned_book_indices = indices
+
     msg = mongodbmanager.insert_new_user(user)
+
     update.message.reply_text(msg)
 
 
@@ -96,6 +103,10 @@ def downloader(update, context) -> None:
     # this must be taken from db
     uid = update.message.chat.id
     db_user = mongodbmanager.get_user(uid)
+    if db_user is None:
+        update.message.reply_text("You are not in database, begin use with /start command")
+        return
+
     user = ChatClient(uid)
     user.from_dict(db_user)
 
@@ -140,7 +151,7 @@ def downloader(update, context) -> None:
     update.message.reply_text("Successfully uploaded the book.")
 
 
-# debug function
+# TODO: debug function/make migrate function to update db documents signatures
 def update(update, context) -> None:
     uid = update.message.chat.id
     user = ChatClient(uid)
@@ -157,12 +168,20 @@ def update(update, context) -> None:
 
 
 def mybooks(update, context) -> None:
+    # TODO: append a text chunk to the message with shared books with you
     uid = update.message.chat.id
-    owner_books = mongodbmanager.get_user_books(uid)
-
     db_user = mongodbmanager.get_user(uid)
+    if db_user is None:
+        update.message.reply_text("You are not in database, begin use with /start command")
+        return
+
     user = ChatClient(uid)
     user.from_dict(db_user)
+    mongo_db_cursor = mongodbmanager.get_user_books(uid)
+    owner_books = [item for item in mongo_db_cursor]
+    if len(owner_books) == 0:
+        update.message.reply_text("You have not uploaded any books yet")
+        return
 
     try:
         files_list_message = ""
@@ -172,19 +191,19 @@ def mybooks(update, context) -> None:
             book_read_progress = user.get_book_progress(book)
             if book_read_progress is not None:
                 # slices \n from default line
-                files_list_message = files_list_message[:-1] + f" Completion: {book_read_progress:.2f}%\n"
+                files_list_message = files_list_message[:-1] + f" Completion: {book_read_progress}%\n"
 
             # double check this code later
+            currently_reading_string = ""
             if user.current_read_target == book.get('index'):
                 # BUG: currently_reading is possibly unbound
-                currently_reading = f"Title: \"{book.get('title')}\" Index: {book.get('index')} Completion: {book_read_progress:.2f}%\n"
+                currently_reading_string = f"Currently reading:\nTitle: \"{book.get('title')}\" Index: {book.get('index')}\n\n"
 
         if files_list_message != "":
-            update.message.reply_text(f"Currently reading:\n{currently_reading}\nYour library:\n{files_list_message}")
-        else:
-            update.message.reply_text(f"You have not uploaded any books yet")
+            update.message.reply_text(f"{currently_reading_string}Your library:\n{files_list_message}")
 
     except Exception as e:
+        print(e)
         update.message.reply_text(f"Internal error: {str(e)}")
 
 
@@ -192,7 +211,6 @@ def mybooks(update, context) -> None:
 def changebook(update, context) -> None:
     # TODO: add a choose index functionality out of user-owned book indices
     # TODO: add a check if book was deleted and current read target will be automatically updated with the new index
-    # BUG: other users can read somebody else's book if they guess its index 
 
     args = context.args
     if len(args) != 1:
@@ -211,17 +229,21 @@ def changebook(update, context) -> None:
 
     uid = update.message.chat.id
     db_user = mongodbmanager.get_user(uid)
+    if db_user is None:
+        update.message.reply_text("You are not in database, begin use with /start command")
+        return
+
     user = ChatClient(uid)
     user.from_dict(db_user)
+    db_book = mongodbmanager.get_book(new_book_index)
 
-    if not new_book_index in user.owned_book_indices:
+    # if not new_book_index in user.owned_book_indices and db_book.get('shared') is False:
+    if not new_book_index in user.owned_book_indices and db_book.get('shared') is False:
         update.message.reply_text(f"You do not own book with specified index {new_book_index}")
         return
 
     user.current_read_target = new_book_index
-
     mongodbmanager.update_user(user)
-
     update.message.reply_text(f"Current book was successfully changed")
 
 
@@ -247,6 +269,10 @@ def changechunksize(update, context) -> None:
 
     uid = update.message.chat.id
     db_user = mongodbmanager.get_user(uid)
+    if db_user is None:
+        update.message.reply_text("You are not in database, begin use with /start command")
+        return
+
     user = ChatClient(uid)
     user.from_dict(db_user)
 
@@ -259,6 +285,15 @@ def changechunksize(update, context) -> None:
 
 # TODO: add a flag to book doc as {shared: true/false}
 def sharebook(update, context) -> None:
+    uid = update.message.chat.id
+    db_user = mongodbmanager.get_user(uid)
+    if db_user is None:
+        update.message.reply_text("You are not in database, begin use with /start command")
+        return
+
+    user = ChatClient(uid)
+    user.from_dict(db_user)
+
     args = context.args
     if len(args) != 1:
         update.message.reply_text(f"You must specify only one argument\nYou specified: {len(args)}")
@@ -274,11 +309,6 @@ def sharebook(update, context) -> None:
         update.message.reply_text(str(e))
         return
 
-    uid = update.message.chat.id
-    db_user = mongodbmanager.get_user(uid)
-    user = ChatClient(uid)
-    user.from_dict(db_user)
-
     if not book_index in user.owned_book_indices:
         update.message.reply_text(f"You do not own book with specified index {book_index}")
         return
@@ -292,8 +322,11 @@ def sharebook(update, context) -> None:
 
 def nextchunk(update, context) -> None:
     uid = update.message.chat.id
-
     db_user = mongodbmanager.get_user(uid)
+    if db_user is None:
+        update.message.reply_text("You are not in database, begin use with /start command")
+        return
+
     user = ChatClient(uid)
     user.from_dict(db_user)
 
@@ -324,6 +357,9 @@ def nextchunk(update, context) -> None:
 def pause(update, context) -> None:
     uid = update.message.chat.id
     db_user = mongodbmanager.get_user(uid)
+    if db_user is None:
+        update.message.reply_text("You are not in database, begin use with /start command")
+        return
 
     user = ChatClient(uid)
     user.from_dict(db_user)
@@ -343,6 +379,9 @@ def pause(update, context) -> None:
 def unpause(update, context) -> None:
     uid = update.message.chat.id
     db_user = mongodbmanager.get_user(uid)
+    if db_user is None:
+        update.message.reply_text("You are not in database, begin use with /start command")
+        return
 
     user = ChatClient(uid)
     user.from_dict(db_user)
