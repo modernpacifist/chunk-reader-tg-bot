@@ -5,6 +5,7 @@ import os
 import logging
 # for local files/buffers parallel cleanup
 import threading
+import re
 
 from Client import ChatClient
 from Book import Book
@@ -196,7 +197,12 @@ def changebook(update, context) -> None:
 
     args = context.args
     if len(args) != 1:
-        update.message.reply_text(f"You must specify only one argument\nYou specified: {len(args)}")
+        update.message.reply_text(f"You must specify only one argument\nYou specified: {len(args)} arguments")
+        return
+    
+    # add regex for user input
+    if bool(re.match("^([0-9]+)$", args[0])) is False:
+        update.message.reply_text(f"Your argument must be a number")
         return
 
     try:
@@ -246,15 +252,13 @@ def changechunksize(update, context) -> None:
 
 
 # TODO: add a flag to book doc as {shared: true/false}
-def charebook(update, context) -> None:
+def sharebook(update, context) -> None:
     args = context.args
     if len(args) != 1:
         update.message.reply_text(f"You must specify only one argument\nYou specified: {len(args)}")
         return
 
     book_index = int(args[0])
-
-
 
     update.message.reply_text(f"You successfully shared a book with index {book_index}")
 
