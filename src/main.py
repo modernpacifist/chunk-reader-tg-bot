@@ -81,6 +81,7 @@ Available commands:
 /unpause - unpause usage of the bot, you will start receiving book chunks regularly
 /changebook - change currently reading book by specifying index in the argument "/changebook <number>"
 /changechunksize - change size of receiving book chunks "/changechunksize <number>"
+/sharebook - make your book public for everybody "/sharebook <number>"
 """)
 
 
@@ -166,7 +167,7 @@ def mybooks(update, context) -> None:
     try:
         files_list_message = ""
         for i, book in enumerate(owner_books, start=1):
-            files_list_message += f"{i}: {book.get('title')} Index: {book.get('index')}\n"
+            files_list_message += f"{i}: {book.get('title')} Index: {book.get('index')} Shared: {book.get('shared')}\n"
 
             book_read_progress = user.get_book_progress(book)
             if book_read_progress is not None:
@@ -197,9 +198,8 @@ def changebook(update, context) -> None:
     if len(args) != 1:
         update.message.reply_text(f"You must specify only one argument\nYou specified: {len(args)} arguments")
         return
-    
-    # add regex for user input
-    if bool(re.match("^([0-9]+)$", args[0])) is False:
+
+    if bool(re.match(r"^([0-9]+)$", args[0])) is False:
         update.message.reply_text(f"Your argument must be a number")
         return
 
@@ -208,8 +208,6 @@ def changebook(update, context) -> None:
     except Exception as e:
         update.message.reply_text(str(e))
         return
-    
-    # TODO: check if current book index exists, and it is owned by the user
 
     uid = update.message.chat.id
     db_user = mongodbmanager.get_user(uid)
@@ -233,12 +231,16 @@ def changechunksize(update, context) -> None:
         update.message.reply_text(f"You must specify only one argument\nYou specified: {len(args)}")
         return
 
+    if bool(re.match(r"^([0-9]+)$", args[0])) is False:
+        update.message.reply_text(f"Your argument must be a number")
+        return
+
     try:
         new_chunk_size = int(args[0])
     except Exception as e:
         update.message.reply_text(str(e))
         return
-    
+
     if new_chunk_size > 2000 or new_chunk_size < 1:
         update.message.reply_text("Chunk size must not exceed 4000 and be at least 1")
         return
@@ -262,9 +264,30 @@ def sharebook(update, context) -> None:
         update.message.reply_text(f"You must specify only one argument\nYou specified: {len(args)}")
         return
 
-    book_index = int(args[0])
+    if bool(re.match(r"^([0-9]+)$", args[0])) is False:
+        update.message.reply_text(f"Your argument must be a number")
+        return
 
-    update.message.reply_text(f"You successfully shared a book with index {book_index}")
+    try:
+        book_index = int(args[0])
+    except Exception as e:
+        update.message.reply_text(str(e))
+        return
+
+    uid = update.message.chat.id
+    db_user = mongodbmanager.get_user(uid)
+    user = ChatClient(uid)
+    user.from_dict(db_user)
+
+    if not book_index in user.owned_book_indices:
+        update.message.reply_text(f"You do not own book with specified index {book_index}")
+        return
+
+    db_book = mongodbmanager.get_book(book_index)
+
+    flag = mongodbmanager.update_book(db_book, query={"shared": True})
+    if flag is True:
+        update.message.reply_text(f"You successfully shared a book with index {book_index}")
 
 
 def nextchunk(update, context) -> None:
@@ -274,7 +297,7 @@ def nextchunk(update, context) -> None:
     user = ChatClient(uid)
     user.from_dict(db_user)
 
-    db_book = mongodbmanager.get_current_book(user.current_read_target)
+    db_book = mongodbmanager.get_book(user.current_read_target)
     if db_book is None:
         update.message.reply_text(f"Book with index {user.current_read_target} not found\nChange your current book")
         return
@@ -352,6 +375,7 @@ def _add_handlers(dispatcher) -> None:
     dispatcher.add_handler(CommandHandler("nextchunk", nextchunk))
     dispatcher.add_handler(CommandHandler("changebook", changebook, pass_args=True))
     dispatcher.add_handler(CommandHandler("changechunksize", changechunksize, pass_args=True))
+    dispatcher.add_handler(CommandHandler("sharebook", sharebook, pass_args=True))
     dispatcher.add_handler(CommandHandler("uid", uid))
     dispatcher.add_handler(CommandHandler("update", update))
     dispatcher.add_handler(CommandHandler("pause", pause))

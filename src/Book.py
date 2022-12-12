@@ -6,3 +6,8 @@ class Book:
         self.index = index
         self.content_length = content_length
         self.shared = False
+
+    # TODO: implement later
+    def from_dict(self, my_dict):
+        for key in my_dict:
+            setattr(self, key, my_dict[key])

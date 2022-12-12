@@ -131,7 +131,7 @@ class MongoDBManager():
         except Exception as e:
             print(e)
 
-    def get_current_book(self, book_index):
+    def get_book(self, book_index):
         """
             return titles(anything else?) of the uploaded books per user
         """
@@ -141,6 +141,24 @@ class MongoDBManager():
                 {"index": book_index}
             )
             return doc
+
+        except Exception as e:
+            print(e)
+
+    def update_book(self, book, query=None):
+        try:
+            if query is None:
+                query = book.__dict__
+            self._db_book_collection.update_one(
+                {
+                    # "_id": book._id,
+                    "_id": book.get("_id"),
+                },
+                {
+                    "$set": query
+                }
+            )
+            return True
 
         except Exception as e:
             print(e)
