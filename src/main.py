@@ -123,11 +123,17 @@ def migrateusers(update, context) -> None:
             update.message.reply_text(f"Skipped user with info: {db_user}")
             continue
 
-        # TODO: add a check if user needs to be updated
         user = ChatClient(db_user.get('_id'))
         user.from_dict(db_user)
-        mongodbmanager.update_user(user)
 
+        # TODO: double check this check, some fields may be deleted during update
+        if db_user.keys() == user.__dict__.keys():
+            update.message.reply_text(f"Skipped user with info: {user_uid}")
+            continue
+
+        update_success = mongodbmanager.update_user(user)
+        if not update_success:
+            update.message.reply_text(f"Problem updating user with uid: {user_uid}")
         update.message.reply_text(f"Migrated user with uid: {user_uid}")
 
 
