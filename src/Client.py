@@ -32,12 +32,6 @@ class ChatClient:
 
         return round(float(user_read_progress / book_content_length) * 100, 2)
 
-    def get_current_reading_book(self, target_id):
-        """
-        in case user decides to read another book
-        """
-        self.current_read_target = target_id
-
     def from_dict(self, my_dict):
         for key in my_dict:
             setattr(self, key, my_dict[key])

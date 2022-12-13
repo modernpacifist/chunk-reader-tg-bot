@@ -51,6 +51,13 @@ class MongoDBManager():
         except Exception as e:
             print(e)
 
+    def get_all_users(self) -> None:
+        try:
+            return self._db_user_collection.find({})
+
+        except Exception as e:
+            print(e)
+
     def get_current_users_ids(self) -> None:
         try:
             return self._db_user_collection.find(

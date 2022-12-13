@@ -96,6 +96,8 @@ Admin commands:
 
 
 def migrateusers(update, context) -> None:
+    # TODO: double check this code, may be dangerous
+
     uid = update.message.chat.id
     db_user = mongodbmanager.get_user(uid)
     if db_user is None:
@@ -109,7 +111,24 @@ def migrateusers(update, context) -> None:
         update.message.reply_text("You have no administrator privileges")
         return
 
-    update.message.reply_text("You are admin")
+    mongo_cursor = mongodbmanager.get_all_users()
+    db_users = [i for i in mongo_cursor]
+    if len(db_users) == 0:
+        update.message.reply_text("No users in database")
+        return 
+
+    for db_user in db_users:
+        user_uid = db_user.get('_id')
+        if user_uid is None:
+            update.message.reply_text(f"Skipped user with info: {db_user}")
+            continue
+
+        # TODO: add a check if user needs to be updated
+        user = ChatClient(db_user.get('_id'))
+        user.from_dict(db_user)
+        mongodbmanager.update_user(user)
+
+        update.message.reply_text(f"Migrated user with uid: {user_uid}")
 
 
 def uid(update, context) -> None:
@@ -141,8 +160,8 @@ def downloader(update, context) -> None:
             book_content = EpubManager.translateEpubToTxt(buffer_filename)
             book = Book(uid, update.message.document.file_name, book_content, index=current_max_book_index, content_length=len(book_content))
             insert_success = mongodbmanager.insert_book(book)
-            # must increment user total books
 
+            # must increment user total books
             if insert_success is False:
                 update.message.reply_text("This book already exists in the database")
                 return
