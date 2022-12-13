@@ -89,7 +89,27 @@ Available commands:
 /changebook - change currently reading book by specifying index in the argument "/changebook <number>"
 /changechunksize - change size of receiving book chunks "/changechunksize <number>"
 /sharebook - make your book public for everybody "/sharebook <number>"
+
+Admin commands:
+/migrateusers - update users schemas
 """)
+
+
+def migrateusers(update, context) -> None:
+    uid = update.message.chat.id
+    db_user = mongodbmanager.get_user(uid)
+    if db_user is None:
+        update.message.reply_text("You are not in database, begin use with /start command")
+        return
+    
+    user = ChatClient(uid)
+    user.from_dict(db_user)
+
+    if not user.admin:
+        update.message.reply_text("You have no administrator privileges")
+        return
+
+    update.message.reply_text("You are admin")
 
 
 def uid(update, context) -> None:
@@ -430,6 +450,7 @@ def _add_handlers(dispatcher) -> None:
     dispatcher.add_handler(CommandHandler("update", update))
     dispatcher.add_handler(CommandHandler("pause", pause))
     dispatcher.add_handler(CommandHandler("unpause", unpause))
+    dispatcher.add_handler(CommandHandler("migrateusers", migrateusers))
 
     dispatcher.add_handler(MessageHandler(Filters.text, unknown_text))
     dispatcher.add_handler(MessageHandler(Filters.document, downloader))
