@@ -91,7 +91,8 @@ Available commands:
 /sharebook - make your book public for everybody "/sharebook <number>"
 
 Admin commands:
-/migrateusers - update users schemas
+/migrateusers - update user doc signatures
+/migratebooks - update book doc signatures
 """)
 
 
@@ -120,21 +121,67 @@ def migrateusers(update, context) -> None:
     for db_user in db_users:
         user_uid = db_user.get('_id')
         if user_uid is None:
-            update.message.reply_text(f"Skipped user with info: {db_user}")
+            update.message.reply_text(f"Problem retrieving user doc with info: {db_user}")
             continue
 
         user = ChatClient(db_user.get('_id'))
         user.from_dict(db_user)
 
-        # TODO: double check this check, some fields may be deleted during update
+        # TODO: double check this conditional, some fields may be deleted during update
         if db_user.keys() == user.__dict__.keys():
-            update.message.reply_text(f"Skipped user with info: {user_uid}")
+            update.message.reply_text(f"Skipped user with uid: {user_uid}")
             continue
 
         update_success = mongodbmanager.update_user(user)
-        if not update_success:
+        if update_success is False:
             update.message.reply_text(f"Problem updating user with uid: {user_uid}")
+            continue
+
         update.message.reply_text(f"Migrated user with uid: {user_uid}")
+
+
+def migratebooks(update, context) -> None:
+    # TODO: double check this code, may be dangerous
+
+    uid = update.message.chat.id
+    db_user = mongodbmanager.get_user(uid)
+    if db_user is None:
+        update.message.reply_text("You are not in database, begin use with /start command")
+        return
+    
+    user = ChatClient(uid)
+    user.from_dict(db_user)
+
+    if not user.admin:
+        update.message.reply_text("You have no administrator privileges")
+        return
+
+    mongo_cursor = mongodbmanager.get_all_books()
+    db_books = [i for i in mongo_cursor]
+    if len(db_books) == 0:
+        update.message.reply_text("No books in database")
+        return 
+
+    for db_book in db_books:
+        book_id = db_book.get('_id')
+        if book_id is None:
+            update.message.reply_text(f"Problem retrieving book doc with id: {db_book}")
+            continue
+
+        book = Book()
+        book.from_dict(db_book)
+
+        # TODO: double check this conditional, some fields may be deleted during update
+        if db_book.keys() == book.__dict__.keys():
+            update.message.reply_text(f"Skipped book with id: {book_id}")
+            continue
+
+        update_success = mongodbmanager.update_book(book)
+        if update_success is False:
+            update.message.reply_text(f"Problem updating book with id: {book_id}")
+            continue
+
+        update.message.reply_text(f"Migrated book with id: {book_id}")
 
 
 def uid(update, context) -> None:
@@ -366,8 +413,10 @@ def sharebook(update, context) -> None:
         return
 
     db_book = mongodbmanager.get_book(book_index)
+    book = Book()
+    book.from_dict(db_book)
 
-    flag = mongodbmanager.update_book(db_book, query={"shared": True})
+    flag = mongodbmanager.update_book(book, query={"shared": True})
     if flag is True:
         update.message.reply_text(f"You successfully shared a book with index {book_index}")
 
@@ -476,6 +525,7 @@ def _add_handlers(dispatcher) -> None:
     dispatcher.add_handler(CommandHandler("pause", pause))
     dispatcher.add_handler(CommandHandler("unpause", unpause))
     dispatcher.add_handler(CommandHandler("migrateusers", migrateusers))
+    dispatcher.add_handler(CommandHandler("migratebooks", migratebooks))
 
     dispatcher.add_handler(MessageHandler(Filters.text, unknown_text))
     dispatcher.add_handler(MessageHandler(Filters.document, downloader))

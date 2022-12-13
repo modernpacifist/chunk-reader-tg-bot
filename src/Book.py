@@ -1,5 +1,6 @@
 class Book:
-    def __init__(self, owner_id, title, content, index=1, content_length=1):
+    # def __init__(self, owner_id, title, content, index=1, content_length=1):
+    def __init__(self, owner_id=None, title=None, content=None, index=1, content_length=1):
         self.owner_id = owner_id
         self.title = title
         self.content = content

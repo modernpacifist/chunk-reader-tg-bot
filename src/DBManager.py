@@ -85,7 +85,7 @@ class MongoDBManager():
 
         except Exception as e:
             print(e)
-            return e
+            return False
 
     # inserts new book if no such title already exists
     def insert_book(self, book) -> bool:
@@ -153,14 +153,21 @@ class MongoDBManager():
         except Exception as e:
             print(e)
 
+    def get_all_books(self) -> None:
+        try:
+            return self._db_book_collection.find({})
+
+        except Exception as e:
+            print(e)
+
     def update_book(self, book, query=None):
         try:
             if query is None:
                 query = book.__dict__
             self._db_book_collection.update_one(
                 {
-                    # "_id": book._id,
-                    "_id": book.get("_id"),
+                    "_id": book._id,
+                    # "_id": book.get("_id"),
                 },
                 {
                     "$set": query
@@ -170,3 +177,4 @@ class MongoDBManager():
 
         except Exception as e:
             print(e)
+            return False
