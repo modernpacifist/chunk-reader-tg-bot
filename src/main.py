@@ -275,6 +275,7 @@ def mybooks(update, context) -> None:
         update.message.reply_text("You have not uploaded any books yet")
         return
 
+    # TODO: use builder pattern here <14-12-22, modernpacifist> #
     try:
         files_list_message = ""
         for i, book in enumerate(owner_books, start=1):
