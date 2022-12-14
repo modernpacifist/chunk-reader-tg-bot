@@ -278,11 +278,16 @@ def mybooks(update, context) -> None:
     try:
         files_list_message = ""
         for i, book in enumerate(owner_books, start=1):
-            files_list_message += f"{i}: {book.get('title')} Index: {book.get('index')} Shared: {book.get('shared')}\n"
+            book_title = book.get('title')
+            book_index = book.get('index')
+            book_shared = book.get('shared')
+
+            # files_list_message += f"{i}: {book.get('title')} Index: {book.get('index')} Shared: {book.get('shared')}\n"
+            files_list_message += f"{i}: {book_title} Index: {book_index} Shared: {book_shared}\n"
 
             book_read_progress = user.get_book_progress(book)
             if book_read_progress is not None:
-                # slices \n from default line
+                # slice removes \n at the end of default line
                 files_list_message = files_list_message[:-1] + f" Completion: {book_read_progress}%\n"
 
             # double check this code later
@@ -291,8 +296,12 @@ def mybooks(update, context) -> None:
                 # BUG: currently_reading is possibly unbound
                 currently_reading_string = f"Currently reading:\nTitle: \"{book.get('title')}\" Index: {book.get('index')}\n\n"
 
+            shared_books = ""
+            if book.get('shared'):
+                shared_books = f"Shared books:\nTitle: \"{book.get('title')}\" Index:{book.get('index')}\n"
+
         if files_list_message != "":
-            update.message.reply_text(f"{currently_reading_string}Your library:\n{files_list_message}")
+            update.message.reply_text(f"{currently_reading_string}Your library:\n{files_list_message}\n{shared_books}\n")
 
     except Exception as e:
         print(e)
