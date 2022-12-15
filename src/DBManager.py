@@ -123,6 +123,20 @@ class MongoDBManager():
         except Exception as e:
             print(e)
 
+    def get_shared_books(self) -> None:
+        """
+            return titles(anything else?) of the uploaded books per user
+        """
+        try:
+            return self._db_book_collection.find(
+                {
+                    "shared": True,
+                }
+            )
+
+        except Exception as e:
+            print(e)
+
     def get_max_book_index(self) -> int:
         """
             return titles(anything else?) of the uploaded books per user

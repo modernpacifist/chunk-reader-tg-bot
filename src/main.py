@@ -271,13 +271,15 @@ def mybooks(update, context) -> None:
     user.from_dict(db_user)
     mongo_db_cursor = mongodbmanager.get_user_books(uid)
     owner_books = [item for item in mongo_db_cursor]
-    if len(owner_books) == 0:
-        update.message.reply_text("You have not uploaded any books yet")
-        return
 
+    shared_db_cursor = mongodbmanager.get_shared_books()
+    shared_books = [item for item in shared_db_cursor]
+
+    files_list_message = ""
+    shared_books_message = ""
+    currently_reading_string = ""
     # TODO: use builder pattern here <14-12-22, modernpacifist> #
     try:
-        files_list_message = ""
         for i, book in enumerate(owner_books, start=1):
             book_title = book.get('title')
             book_index = book.get('index')
@@ -292,17 +294,21 @@ def mybooks(update, context) -> None:
                 files_list_message = files_list_message[:-1] + f" Completion: {book_read_progress}%\n"
 
             # double check this code later
-            currently_reading_string = ""
             if user.current_read_target == book.get('index'):
                 # BUG: currently_reading is possibly unbound
                 currently_reading_string = f"Currently reading:\nTitle: \"{book.get('title')}\" Index: {book.get('index')}\n\n"
 
-            shared_books = ""
-            if book.get('shared'):
-                shared_books = f"Shared books:\nTitle: \"{book.get('title')}\" Index:{book.get('index')}\n"
+        for i, book in enumerate(shared_books, start=1):
+            shared_books_message += f"Title: \"{book.get('title')}\" Index: {book.get('index')}\n"
+            # files_list_message += f"Shared books:\nTitle: \"{book_title}\" Index: {book_index}\n"
+
+        if shared_books_message != "":
+            files_list_message = files_list_message + f"\nShared books:\n{shared_books_message}"
 
         if files_list_message != "":
-            update.message.reply_text(f"{currently_reading_string}Your library:\n{files_list_message}\n{shared_books}\n")
+            update.message.reply_text(f"{currently_reading_string}Your library:\n{files_list_message}\n")
+        else:
+            update.message.reply_text("You have not uploaded any books yet")
 
     except Exception as e:
         print(e)
