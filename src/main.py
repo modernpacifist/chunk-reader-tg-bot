@@ -277,13 +277,17 @@ def mybooks(update, context) -> None:
     # this is duplicated
     mongo_db_cursor = mongodbmanager.get_user_books(uid)
     owner_books = [item for item in mongo_db_cursor]
+    # owner_books = {item['index']:item for item in mongo_db_cursor}
 
     shared_db_cursor = mongodbmanager.get_shared_books()
     shared_books = [item for item in shared_db_cursor]
+    # shared_books = {item['index']:item for item in shared_db_cursor}
 
+    currently_reading_string = ""
     files_list_message = ""
     shared_books_message = ""
-    currently_reading_string = ""
+
+    current_book = None
     # TODO: use builder pattern here <14-12-22, modernpacifist> #
     try:
         for i, book in enumerate(owner_books, start=1):
@@ -291,28 +295,50 @@ def mybooks(update, context) -> None:
             book_index = book.get('index')
             book_shared = book.get('shared')
 
-            files_list_message += f"Your books:\n{i}: {book_title} Index: {book_index} Shared: {book_shared}\n"
+            files_list_message += f"Your books:\n{i}: {book_title} Index: {book_index} Shared: {book_shared}\n\n"
 
             book_read_progress = user.get_book_progress(book)
             if book_read_progress is not None:
                 # slice removes \n at the end of default line
-                files_list_message = files_list_message[:-1] + f" Completion: {book_read_progress}%\n"
+                files_list_message = files_list_message[:-2] + f" Completion: {book_read_progress}%\n\n"
 
             # double check this code later
             if user.current_read_target == book.get('index'):
                 # BUG: currently_reading is possibly unbound
-                currently_reading_string = f"Currently reading:\nTitle: \"{book.get('title')}\" Index: {book.get('index')}\n\n"
+                # book_read_progress = user.get_book_progress(book)
+                # currently_reading_string = f"Currently reading:\nTitle: \"{book.get('title')}\" Index: {book.get('index')}\n\n"
+                current_book = book
 
         for i, book in enumerate(shared_books, start=1):
             shared_books_message += f"Title: \"{book.get('title')}\" Index: {book.get('index')}\n"
 
+            book_read_progress = user.get_book_progress(book)
+            if book_read_progress is not None:
+                # slice removes \n at the end of default line
+                shared_books_message = shared_books_message[:-1] + f" Completion: {book_read_progress}%\n\n"
+
+            if user.current_read_target == book.get('index'):
+                # BUG: currently_reading is possibly unbound
+                # book_read_progress = user.get_book_progress(book)
+                # currently_reading_string = f"Currently reading:\nTitle: \"{book.get('title')}\" Index: {book.get('index')}\n\n"
+                current_book = book
+
+        if current_book:
+            # BUG: currently_reading is possibly unbound
+            currently_reading_string = f"Currently reading:\nTitle: \"{current_book.get('title')}\" Index: {current_book.get('index')}\n\n"
+            book_read_progress = user.get_book_progress(current_book)
+            if book_read_progress is not None:
+                # slice removes \n at the end of default line
+                currently_reading_string = currently_reading_string[:-2] + f" Completion: {book_read_progress}%\n\n"
+
         if shared_books_message != "":
-            files_list_message = files_list_message + f"\nShared books:\n{shared_books_message}"
+            files_list_message = files_list_message + f"Shared books:\n{shared_books_message}"
 
         if files_list_message != "":
             update.message.reply_text(f"{currently_reading_string}{files_list_message}\n")
-        else:
-            update.message.reply_text("You have not uploaded any books yet")
+            return
+
+        update.message.reply_text("You have not uploaded any books yet")
 
     except Exception as e:
         print(e)

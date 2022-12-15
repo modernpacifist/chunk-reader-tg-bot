@@ -28,7 +28,6 @@ class MongoDBManager():
         return self._db[collection_name]
 
     # must take a Client instance as argument
-    # def insert_new_user(self, user_id) -> None:
     def insert_new_user(self, user) -> str:
         # TODO: add a check if user already exists
         try:
@@ -181,7 +180,6 @@ class MongoDBManager():
             self._db_book_collection.update_one(
                 {
                     "_id": book._id,
-                    # "_id": book.get("_id"),
                 },
                 {
                     "$set": query
