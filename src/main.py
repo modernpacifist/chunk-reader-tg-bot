@@ -274,6 +274,7 @@ def mybooks(update, context) -> None:
 
     user = ChatClient(uid)
     user.from_dict(db_user)
+    # this is duplicated
     mongo_db_cursor = mongodbmanager.get_user_books(uid)
     owner_books = [item for item in mongo_db_cursor]
 
@@ -290,8 +291,7 @@ def mybooks(update, context) -> None:
             book_index = book.get('index')
             book_shared = book.get('shared')
 
-            # files_list_message += f"{i}: {book.get('title')} Index: {book.get('index')} Shared: {book.get('shared')}\n"
-            files_list_message += f"{i}: {book_title} Index: {book_index} Shared: {book_shared}\n"
+            files_list_message += f"Your books:\n{i}: {book_title} Index: {book_index} Shared: {book_shared}\n"
 
             book_read_progress = user.get_book_progress(book)
             if book_read_progress is not None:
@@ -310,7 +310,7 @@ def mybooks(update, context) -> None:
             files_list_message = files_list_message + f"\nShared books:\n{shared_books_message}"
 
         if files_list_message != "":
-            update.message.reply_text(f"{currently_reading_string}Your library:\n{files_list_message}\n")
+            update.message.reply_text(f"{currently_reading_string}{files_list_message}\n")
         else:
             update.message.reply_text("You have not uploaded any books yet")
 
