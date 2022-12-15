@@ -514,7 +514,11 @@ def nextchunk(update, context) -> None:
         chunk_end = len(book_content) - 1
 
     # check chunk_content size
+    # TODO: bug here, if indexing exceeds book_content max length
     chunk_content = book_content[chunk_start:chunk_end]
+    if chunk_content is None:
+        update.message.reply_text("You have finished this book")
+        return
 
     update.message.reply_text(chunk_content)
 
