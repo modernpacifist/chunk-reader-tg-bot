@@ -286,6 +286,7 @@ def mybooks(update, context) -> None:
     currently_reading_string = ""
     files_list_message = ""
     shared_books_message = ""
+    user_books = ""
 
     current_book = None
     # TODO: use builder pattern here <14-12-22, modernpacifist> #
@@ -295,12 +296,19 @@ def mybooks(update, context) -> None:
             book_index = book.get('index')
             book_shared = book.get('shared')
 
-            files_list_message += f"Your books:\n{i}: {book_title} Index: {book_index} Shared: {book_shared}\n\n"
+            # files_list_message += f"Your books:\n{i}: {book_title} Index: {book_index} Shared: {book_shared}\n\n"
+            # files_list_message += f"Your books:\n{i}: {book_title} Index: {book_index} Shared: {book_shared}\n\n"
+
+            # book_read_progress = user.get_book_progress(book)
+            # if book_read_progress is not None:
+                # # slice removes \n at the end of default line
+                # files_list_message = files_list_message[:-2] + f" Completion: {book_read_progress}%\n\n"
+            user_books += f"{i}: {book_title} Index: {book_index} Shared: {book_shared}\n"
 
             book_read_progress = user.get_book_progress(book)
             if book_read_progress is not None:
                 # slice removes \n at the end of default line
-                files_list_message = files_list_message[:-2] + f" Completion: {book_read_progress}%\n\n"
+                user_books = user_books[:-1] + f" Completion: {book_read_progress}%\n"
 
             # double check this code later
             if user.current_read_target == book.get('index'):
@@ -330,6 +338,9 @@ def mybooks(update, context) -> None:
             if book_read_progress is not None:
                 # slice removes \n at the end of default line
                 currently_reading_string = currently_reading_string[:-2] + f" Completion: {book_read_progress}%\n\n"
+
+        if user_books != "":
+            files_list_message = files_list_message + f"Your books:\n{user_books}\n"
 
         if shared_books_message != "":
             files_list_message = files_list_message + f"Shared books:\n{shared_books_message}"
