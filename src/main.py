@@ -296,13 +296,6 @@ def mybooks(update, context) -> None:
             book_index = book.get('index')
             book_shared = book.get('shared')
 
-            # files_list_message += f"Your books:\n{i}: {book_title} Index: {book_index} Shared: {book_shared}\n\n"
-            # files_list_message += f"Your books:\n{i}: {book_title} Index: {book_index} Shared: {book_shared}\n\n"
-
-            # book_read_progress = user.get_book_progress(book)
-            # if book_read_progress is not None:
-                # # slice removes \n at the end of default line
-                # files_list_message = files_list_message[:-2] + f" Completion: {book_read_progress}%\n\n"
             user_books += f"{i}: {book_title} Index: {book_index} Shared: {book_shared}\n"
 
             book_read_progress = user.get_book_progress(book)
