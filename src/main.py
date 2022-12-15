@@ -53,6 +53,7 @@ def local_files_cleanup():
             if file.endswith(".epub") or file.endswith(".buffer"):
                 os.remove(file)
                 print("Local files cleaned up")
+
     except Exception as e:
         print(e)
 
@@ -203,15 +204,19 @@ def downloader(update, context) -> None:
     user.from_dict(db_user)
 
     try:
+        user_doc = update.message.document
+        if not user_doc.file_name.endswith(".epub"):
+            update.message.reply_text("You can upload only epub files")
+            return
+
         update.message.reply_text("Uploading...")
         current_max_book_index = mongodbmanager.get_max_book_index()
-        context.bot.get_file(update.message.document).download()
 
         # read file
         with open(buffer_filename, 'wb') as f:
-            context.bot.get_file(update.message.document).download(out=f)
+            context.bot.get_file(user_doc).download(out=f)
             book_content = EpubManager.translateEpubToTxt(buffer_filename)
-            book = Book(uid, update.message.document.file_name, book_content, index=current_max_book_index, content_length=len(book_content))
+            book = Book(uid, user_doc.file_name, book_content, index=current_max_book_index, content_length=len(book_content))
             insert_success = mongodbmanager.insert_book(book)
 
             # must increment user total books
@@ -300,7 +305,6 @@ def mybooks(update, context) -> None:
 
         for i, book in enumerate(shared_books, start=1):
             shared_books_message += f"Title: \"{book.get('title')}\" Index: {book.get('index')}\n"
-            # files_list_message += f"Shared books:\nTitle: \"{book_title}\" Index: {book_index}\n"
 
         if shared_books_message != "":
             files_list_message = files_list_message + f"\nShared books:\n{shared_books_message}"
@@ -313,6 +317,24 @@ def mybooks(update, context) -> None:
     except Exception as e:
         print(e)
         update.message.reply_text(f"Internal error: {str(e)}")
+
+
+def renamebook(update, context):
+    uid = update.message.chat.id
+    db_user = mongodbmanager.get_user(uid)
+    if db_user is None:
+        update.message.reply_text("You are not in database, begin use with /start command")
+        return
+
+    user = ChatClient(uid)
+    user.from_dict(db_user)
+    mongo_db_cursor = mongodbmanager.get_user_books(uid)
+    owner_books = [item for item in mongo_db_cursor]
+
+    shared_db_cursor = mongodbmanager.get_shared_books()
+    shared_books = [item for item in shared_db_cursor]
+
+    return
 
 
 # not exactly changebook, but change currently reading book
