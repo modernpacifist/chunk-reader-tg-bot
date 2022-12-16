@@ -311,6 +311,10 @@ def mybooks(update, context) -> None:
                 current_book = book
 
         for i, book in enumerate(shared_books, start=1):
+            # TODO: error with shared books getting name
+            if book.get('title') is None:
+                continue
+
             shared_books_message += f"Title: \"{book.get('title')}\" Index: {book.get('index')}\n"
 
             book_read_progress = user.get_book_progress(book)
