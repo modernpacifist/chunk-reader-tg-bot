@@ -22,8 +22,12 @@ class ChatClient:
         if book_title is None:
             return None
 
-        user_read_progress = self.read_progress[book_title]
-        if user_read_progress == 0:
+        if self.read_progress.get(book_title) is None:
+            return None
+
+        # If the book is shared and no progress has been made, square brackets crash
+        user_read_progress = self.read_progress.get(book_title)
+        if user_read_progress is None:
             return None
 
         book_content_length = book.get('content_length')
