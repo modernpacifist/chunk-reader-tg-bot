@@ -511,6 +511,8 @@ def nextchunk(update, context) -> None:
     # this code already exists in /changebook command
     if chunk_start is None:
         user.read_progress[db_book.get("title")] = 0
+        # check if this is needed
+        chunk_start = 0
 
     # find can return -1 if the char won't be found
     chunk_end = book_content.find('.', chunk_start + user.read_chunk_size) + 1
