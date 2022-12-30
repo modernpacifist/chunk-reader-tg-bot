@@ -14,6 +14,7 @@ from EpubManager import EpubManager
     
 from dotenv import load_dotenv
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
+from telegram.constants import MAX_MESSAGE_LENGTH
 
 load_dotenv()
 
