@@ -6,7 +6,8 @@ import logging
 # for local files/buffers parallel cleanup
 import threading
 import re
-# import datetime
+import datetime
+import pytz
 
 from Client import ChatClient
 from Book import Book
@@ -677,11 +678,11 @@ def main():
 
     j = updater.job_queue
     # j.run_repeating(feedchunk, 10)
-    j.run_repeating(feedchunk, 60)
-    # j.run_daily(feedchunk,
-    #     days=(0, 1, 2, 3, 4, 5, 6),
-    #     time=datetime.time(hour=16, minute=35, second=00, tzinfo='UTC+3')
-    # )
+    # j.run_repeating(feedchunk, 60)
+    j.run_daily(feedchunk,
+        days=(0, 1, 2, 3, 4, 5, 6),
+        time=datetime.time(hour=10, minute=00, second=00, tzinfo=pytz.timezone('Europe/Moscow'))
+    )
     # job_daily.run()
 
     # _add_handlers line is essenstial for command handling
