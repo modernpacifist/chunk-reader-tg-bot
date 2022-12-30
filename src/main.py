@@ -13,7 +13,7 @@ from DBManager import MongoDBManager
 from EpubManager import EpubManager
     
 from dotenv import load_dotenv
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, JobQueue
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
 
 load_dotenv()
 
@@ -586,6 +586,14 @@ def error(update, context) -> None:
     logger.warning(f"Update {update} caused error {context.error}")
 
 
+def once(context: CallbackContext):
+    message = "Hello, this message will be sent only once"
+    
+    # send message to all users
+    user_id = 777855967
+    context.bot.send_message(chat_id=user_id, text=message)
+
+
 def _add_handlers(dispatcher) -> None:
     dispatcher.add_handler(CommandHandler("start", start))
     # dispatcher.add_handler(CommandHandler("start", start, pass_job_queue=True))
@@ -615,6 +623,9 @@ def main():
         exit(1)
 
     local_files_cleanup()
+
+    j = updater.job_queue
+    j.run_repeating(once, 3)
 
     # _add_handlers line is essenstial for command handling
     _add_handlers(updater.dispatcher)

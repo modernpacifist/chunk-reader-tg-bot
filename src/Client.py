@@ -30,6 +30,7 @@ class ChatClient:
         if user_read_progress is None:
             return None
 
+        # wtf is this
         book_content_length = book.get('content_length')
         if book_content_length is None:
             book_content_length = len(book.get('content'))
