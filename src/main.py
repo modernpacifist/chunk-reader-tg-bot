@@ -587,12 +587,68 @@ def error(update, context) -> None:
     logger.warning(f"Update {update} caused error {context.error}")
 
 
-def once(context: CallbackContext):
-    message = "Hello, this message will be sent only once"
-    
+def feedchunk(context: CallbackContext):
     # send message to all users
-    user_id = 777855967
-    context.bot.send_message(chat_id=user_id, text=message)
+    mongo_current_users_cursor = mongodbmanager.get_current_users_ids()
+    current_users_ids = [i.get('_id') for i in mongo_current_users_cursor]
+
+    print(current_users_ids)
+    print(current_users_ids)
+    print(current_users_ids)
+
+    for uid in current_users_ids:
+        if uid is None:
+            continue
+
+        db_user = mongodbmanager.get_user(uid)
+
+        if db_user is None:
+            # update.message.reply_text("You are not in database, begin use with /start command")
+            # context.bot.send_message(chat_id=uid, text="You are not in database, begin use with /start command")
+            print(f"User {uid} is not in database")
+            continue
+
+        user = ChatClient(uid)
+        user.from_dict(db_user)
+
+        db_book = mongodbmanager.get_book(user.current_read_target)
+        if db_book is None:
+            # update.message.reply_text(f"Book with index {user.current_read_target} not found\nChange your current book")
+            # return
+            print(f"User {uid} is not in database")
+            continue
+
+        book_content = db_book.get("content")
+
+        # gets index of the latest chunk
+        chunk_start = user.read_progress.get(db_book.get("title"))
+        # this code already exists in /changebook command
+        if chunk_start is None:
+            user.read_progress[db_book.get("title")] = 0
+            # check if this is needed
+            chunk_start = 0
+
+        # find can return -1 if the char won't be found
+        chunk_end = book_content.find('.', chunk_start + user.read_chunk_size) + 1
+        if chunk_end == -1:
+            chunk_end = len(book_content) - 1
+
+        # check chunk_content size
+        # TODO: bug here, if indexing exceeds book_content max length
+        chunk_content = book_content[chunk_start:chunk_end]
+        if chunk_content is None:
+            update.message.reply_text("You have finished this book")
+            continue
+            # return
+
+        # update.message.reply_text(chunk_content)
+        context.bot.send_message(chat_id=user._id, text=chunk_content)
+
+        user.read_progress[db_book.get("title")] = chunk_end
+        mongodbmanager.update_user(user)
+
+        # chunk = 
+        # user_id = 777855967
 
 
 def _add_handlers(dispatcher) -> None:
@@ -626,7 +682,7 @@ def main():
     local_files_cleanup()
 
     j = updater.job_queue
-    j.run_repeating(once, 3)
+    j.run_repeating(feedchunk, 10)
 
     # _add_handlers line is essenstial for command handling
     _add_handlers(updater.dispatcher)
