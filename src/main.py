@@ -592,10 +592,6 @@ def feedchunk(context: CallbackContext):
     mongo_current_users_cursor = mongodbmanager.get_current_users_ids()
     current_users_ids = [i.get('_id') for i in mongo_current_users_cursor]
 
-    print(current_users_ids)
-    print(current_users_ids)
-    print(current_users_ids)
-
     for uid in current_users_ids:
         if uid is None:
             continue
