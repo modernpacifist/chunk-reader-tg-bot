@@ -6,6 +6,7 @@ import logging
 # for local files/buffers parallel cleanup
 import threading
 import re
+# import datetime
 
 from Client import ChatClient
 from Book import Book
@@ -588,6 +589,7 @@ def error(update, context) -> None:
 
 
 def feedchunk(context: CallbackContext):
+    # logger.info(f"Time: {datetime} Executing feedchunk command")
     # send message to all users
     mongo_current_users_cursor = mongodbmanager.get_current_users_ids()
     current_users_ids = [i.get('_id') for i in mongo_current_users_cursor]
@@ -599,8 +601,6 @@ def feedchunk(context: CallbackContext):
         db_user = mongodbmanager.get_user(uid)
 
         if db_user is None:
-            # update.message.reply_text("You are not in database, begin use with /start command")
-            # context.bot.send_message(chat_id=uid, text="You are not in database, begin use with /start command")
             print(f"User {uid} is not in database")
             continue
 
@@ -609,9 +609,7 @@ def feedchunk(context: CallbackContext):
 
         db_book = mongodbmanager.get_book(user.current_read_target)
         if db_book is None:
-            # update.message.reply_text(f"Book with index {user.current_read_target} not found\nChange your current book")
-            # return
-            print(f"User {uid} is not in database")
+            print(f"User {uid} does not have access to this book")
             continue
 
         book_content = db_book.get("content")
@@ -678,7 +676,13 @@ def main():
     local_files_cleanup()
 
     j = updater.job_queue
-    j.run_repeating(feedchunk, 10)
+    # j.run_repeating(feedchunk, 10)
+    j.run_repeating(feedchunk, 60)
+    # j.run_daily(feedchunk,
+    #     days=(0, 1, 2, 3, 4, 5, 6),
+    #     time=datetime.time(hour=16, minute=35, second=00, tzinfo='UTC+3')
+    # )
+    # job_daily.run()
 
     # _add_handlers line is essenstial for command handling
     _add_handlers(updater.dispatcher)
