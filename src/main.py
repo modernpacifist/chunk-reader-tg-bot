@@ -663,6 +663,7 @@ def _add_handlers(dispatcher) -> None:
 
     dispatcher.add_handler(MessageHandler(filters.Filters.text, unknown_text))
     dispatcher.add_handler(MessageHandler(filters.Filters.document, downloader))
+
     dispatcher.add_error_handler(error)
 
 
