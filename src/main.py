@@ -13,10 +13,9 @@ from Client import ChatClient
 from Book import Book
 from DBManager import MongoDBManager
 from EpubManager import EpubManager
-    
+
 from dotenv import load_dotenv
 from telegram.ext import Updater, CommandHandler, MessageHandler, filters, CallbackContext
-# from telegram.constants import MAX_MESSAGE_LENGTH
 
 load_dotenv()
 
@@ -662,8 +661,8 @@ def _add_handlers(dispatcher) -> None:
     dispatcher.add_handler(CommandHandler("migrateusers", migrateusers))
     dispatcher.add_handler(CommandHandler("migratebooks", migratebooks))
 
-    dispatcher.add_handler(MessageHandler(filters.Text(), unknown_text))
-    dispatcher.add_handler(MessageHandler(filters.Document, downloader))
+    dispatcher.add_handler(MessageHandler(filters.Filters.text, unknown_text))
+    dispatcher.add_handler(MessageHandler(filters.Filters.document, downloader))
     dispatcher.add_error_handler(error)
 
 
