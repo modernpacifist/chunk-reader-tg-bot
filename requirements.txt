@@ -3,8 +3,9 @@ cleantext==1.1.4
 EbookLib==0.17.1
 epub2txt==0.1.1
 pymongo==4.2.0
-PyPDF2==2.12.1
+PyPDF2==3.0.1
 python-dotenv==0.21.0
-python_telegram_bot==13.14
+python_telegram_bot==20.0
+pytz==2022.1
 telegram==0.0.1
 textblob==0.17.1
