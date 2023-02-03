@@ -1,0 +1,9 @@
+version: '3'
+
+services:
+  mongo_database:
+    image: 'mongo'
+  tg-bot:
+    build: .
+    ports:
+      - "8080:8080"
