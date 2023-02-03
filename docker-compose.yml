@@ -1,7 +1,7 @@
 version: '3'
 
 services:
-  mongo_database:
+  mongo-database:
     image: 'mongo'
   tg-bot:
     build: .
