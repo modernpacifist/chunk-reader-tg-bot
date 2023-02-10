@@ -1,6 +1,9 @@
 #!/bin/env python3.9
 
 import pymongo
+import logging
+
+LOGGER = logging.getLogger(__name__)
 
 
 class MongoDBManager():
@@ -20,7 +23,7 @@ class MongoDBManager():
             return mongo_client[db_name]
 
         except Exception as e:
-            print(e)
+            LOGGER.critical(e)
             exit(1)
 
     # private method
