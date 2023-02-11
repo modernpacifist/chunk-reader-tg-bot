@@ -15,7 +15,7 @@ from DBManager import MongoDBManager
 from EpubManager import EpubManager
 
 from dotenv import load_dotenv
-from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, CallbackContext , JobQueue, filters
+from telegram.ext import ApplicationBuilder, CommandHandler, Job, MessageHandler, CallbackContext , JobQueue, filters
 
 load_dotenv()
 
@@ -683,7 +683,8 @@ def main():
     local_files_cleanup()
 
     # j = updater.job_queue
-    j = app.job_queue
+    # j = app.job_queue
+    j = JobQueue()
     # j.run_repeating(feedchunk, 10)
     # j.run_repeating(feedchunk, 60)
     j.run_daily(feedchunk,
