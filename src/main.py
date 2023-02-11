@@ -15,7 +15,7 @@ from DBManager import MongoDBManager
 from EpubManager import EpubManager
 
 from dotenv import load_dotenv
-from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, CallbackContext
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, CallbackContext , JobQueue, filters
 
 load_dotenv()
 
@@ -648,7 +648,6 @@ def feedchunk(context: CallbackContext):
 
 def _add_handlers(dispatcher) -> None:
     dispatcher.add_handler(CommandHandler("start", start))
-    # dispatcher.add_handler(CommandHandler("start", start, pass_job_queue=True))
     dispatcher.add_handler(CommandHandler("mybooks", mybooks))
     dispatcher.add_handler(CommandHandler("help", help))
     dispatcher.add_handler(CommandHandler("nextchunk", nextchunk))
@@ -683,7 +682,8 @@ def main():
 
     local_files_cleanup()
 
-    j = updater.job_queue
+    # j = updater.job_queue
+    j = app.job_queue
     # j.run_repeating(feedchunk, 10)
     # j.run_repeating(feedchunk, 60)
     j.run_daily(feedchunk,
