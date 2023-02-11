@@ -15,7 +15,7 @@ from DBManager import MongoDBManager
 from EpubManager import EpubManager
 
 from dotenv import load_dotenv
-from telegram.ext import Updater, CommandHandler, MessageHandler, filters, CallbackContext
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, CallbackContext
 
 load_dotenv()
 
@@ -669,11 +669,17 @@ def _add_handlers(dispatcher) -> None:
 
 
 def main():
+    # try:
+        # updater = Updater(BOT_TOKEN)
+    # except Exception as e:
+        # print(e)
+        # exit(1)
     try:
-        updater = Updater(BOT_TOKEN)
+        app = ApplicationBuilder().token(BOT_TOKEN).build()
     except Exception as e:
         print(e)
         exit(1)
+
 
     local_files_cleanup()
 

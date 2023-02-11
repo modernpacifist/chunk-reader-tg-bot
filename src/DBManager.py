@@ -23,7 +23,7 @@ class MongoDBManager():
             return mongo_client[db_name]
 
         except Exception as e:
-            LOGGER.critical(e)
+            LOGGER.critical(f"MongoDBManager: {e}")
             exit(1)
 
     # private method
@@ -38,10 +38,12 @@ class MongoDBManager():
                 user.__dict__,
             )
 
+        # TODO: no strings in return value <11-02-23, modernpacifist> #
         except pymongo.errors.DuplicateKeyError:
             return "User already exists in database"
 
         except Exception as e:
+            LOGGER.error(f"MongoDBManager: {e}")
             return e
 
         return "User was successfully added to database"
@@ -51,14 +53,14 @@ class MongoDBManager():
             return self._db_user_collection.find_one({"_id": uid})
 
         except Exception as e:
-            print(e)
+            LOGGER.error(f"MongoDBManager: {e}")
 
     def get_all_users(self) -> None:
         try:
             return self._db_user_collection.find({})
 
         except Exception as e:
-            print(e)
+            LOGGER.error(f"MongoDBManager: {e}")
 
     def get_current_users_ids(self) -> None:
         try:
@@ -69,7 +71,7 @@ class MongoDBManager():
             )
 
         except Exception as e:
-            print(e)
+            LOGGER.error(f"MongoDBManager: {e}")
 
     def update_user(self, user, query=None):
         try:
@@ -86,7 +88,7 @@ class MongoDBManager():
             return True
 
         except Exception as e:
-            print(e)
+            LOGGER.error(f"MongoDBManager: {e}")
             return False
 
     # inserts new book if no such title already exists
@@ -107,7 +109,7 @@ class MongoDBManager():
             return True
 
         except Exception as e:
-            print(e)
+            LOGGER.error(f"MongoDBManager: {e}")
             return False
 
     # this can return none
@@ -123,7 +125,7 @@ class MongoDBManager():
             )
 
         except Exception as e:
-            print(e)
+            LOGGER.error(f"MongoDBManager: {e}")
 
     def get_shared_books(self) -> None:
         """
@@ -137,7 +139,7 @@ class MongoDBManager():
             )
 
         except Exception as e:
-            print(e)
+            LOGGER.error(f"MongoDBManager: {e}")
 
     def get_max_book_index(self) -> int:
         """
@@ -151,7 +153,7 @@ class MongoDBManager():
             return doc.get("index") + 1
 
         except Exception as e:
-            print(e)
+            LOGGER.error(f"MongoDBManager: {e}")
 
     def get_book(self, book_index, query=None):
         """
@@ -167,14 +169,14 @@ class MongoDBManager():
             return doc
 
         except Exception as e:
-            print(e)
+            LOGGER.error(f"MongoDBManager: {e}")
 
     def get_all_books(self) -> None:
         try:
             return self._db_book_collection.find({})
 
         except Exception as e:
-            print(e)
+            LOGGER.error(f"MongoDBManager: {e}")
 
     def update_book(self, book, query=None):
         try:
@@ -191,5 +193,5 @@ class MongoDBManager():
             return True
 
         except Exception as e:
-            print(e)
+            LOGGER.error(f"MongoDBManager: {e}")
             return False
