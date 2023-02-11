@@ -1,9 +1,12 @@
 import ebooklib
+import logging
 
 from ebooklib import epub
 from bs4 import BeautifulSoup
 from cleantext import clean
-from epub2txt import epub2txt
+# from epub2txt import epub2txt
+
+LOGGER = logging.getLogger(__name__)
 
 
 def to_text(html_item):
@@ -15,12 +18,20 @@ def to_text(html_item):
 class EpubManager:
     @staticmethod
     def translateEpubToTxt(file):
-        try:
-            return epub2txt(file)
+        # try:
+            # return epub2txt(file)
 
-        except Exception as e:
-            print(e)
+        # except Exception as e:
+            # print(e)
+            # book = epub.read_epub(file)
+            # items = list(book.get_items_of_type(ebooklib.ITEM_DOCUMENT))
+            # raw_text = " ".join([to_text(item) for item in items])
+            # return raw_text.replace("\n", " ")
+        try:
             book = epub.read_epub(file)
             items = list(book.get_items_of_type(ebooklib.ITEM_DOCUMENT))
             raw_text = " ".join([to_text(item) for item in items])
             return raw_text.replace("\n", " ")
+
+        except Exception as e:
+            LOGGER.error(e)
