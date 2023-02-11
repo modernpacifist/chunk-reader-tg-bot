@@ -15,7 +15,7 @@ from DBManager import MongoDBManager
 from EpubManager import EpubManager
 
 from dotenv import load_dotenv
-from telegram.ext import ApplicationBuilder, CommandHandler, Job, MessageHandler, CallbackContext , JobQueue, filters
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, CallbackContext , JobQueue, filters
 
 load_dotenv()
 
@@ -646,25 +646,25 @@ def feedchunk(context: CallbackContext):
         # user_id = 777855967
 
 
-def _add_handlers(dispatcher) -> None:
-    dispatcher.add_handler(CommandHandler("start", start))
-    dispatcher.add_handler(CommandHandler("mybooks", mybooks))
-    dispatcher.add_handler(CommandHandler("help", help))
-    dispatcher.add_handler(CommandHandler("nextchunk", nextchunk))
-    dispatcher.add_handler(CommandHandler("changebook", changebook, pass_args=True))
-    dispatcher.add_handler(CommandHandler("changechunksize", changechunksize, pass_args=True))
-    dispatcher.add_handler(CommandHandler("sharebook", sharebook, pass_args=True))
-    dispatcher.add_handler(CommandHandler("uid", uid))
-    dispatcher.add_handler(CommandHandler("update", update))
-    dispatcher.add_handler(CommandHandler("pause", pause))
-    dispatcher.add_handler(CommandHandler("unpause", unpause))
-    dispatcher.add_handler(CommandHandler("migrateusers", migrateusers))
-    dispatcher.add_handler(CommandHandler("migratebooks", migratebooks))
+# def _add_handlers(dispatcher) -> None:
+    # dispatcher.add_handler(CommandHandler("start", start))
+    # dispatcher.add_handler(CommandHandler("mybooks", mybooks))
+    # dispatcher.add_handler(CommandHandler("help", help))
+    # dispatcher.add_handler(CommandHandler("nextchunk", nextchunk))
+    # dispatcher.add_handler(CommandHandler("changebook", changebook, pass_args=True))
+    # dispatcher.add_handler(CommandHandler("changechunksize", changechunksize, pass_args=True))
+    # dispatcher.add_handler(CommandHandler("sharebook", sharebook, pass_args=True))
+    # dispatcher.add_handler(CommandHandler("uid", uid))
+    # dispatcher.add_handler(CommandHandler("update", update))
+    # dispatcher.add_handler(CommandHandler("pause", pause))
+    # dispatcher.add_handler(CommandHandler("unpause", unpause))
+    # dispatcher.add_handler(CommandHandler("migrateusers", migrateusers))
+    # dispatcher.add_handler(CommandHandler("migratebooks", migratebooks))
 
-    dispatcher.add_handler(MessageHandler(filters.Filters.text, unknown_text))
-    dispatcher.add_handler(MessageHandler(filters.Filters.document, downloader))
+    # dispatcher.add_handler(MessageHandler(filters.Filters.text, unknown_text))
+    # dispatcher.add_handler(MessageHandler(filters.Filters.document, downloader))
 
-    dispatcher.add_error_handler(error)
+    # dispatcher.add_error_handler(error)
 
 
 def main():
@@ -679,30 +679,57 @@ def main():
         print(e)
         exit(1)
 
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("mybooks", mybooks))
+    app.add_handler(CommandHandler("help", help))
+    app.add_handler(CommandHandler("nextchunk", nextchunk))
+    app.add_handler(CommandHandler("changebook", changebook))
+    app.add_handler(CommandHandler("changechunksize", changechunksize))
+    app.add_handler(CommandHandler("sharebook", sharebook))
+    app.add_handler(CommandHandler("uid", uid))
+    app.add_handler(CommandHandler("update", update))
+    app.add_handler(CommandHandler("pause", pause))
+    app.add_handler(CommandHandler("unpause", unpause))
+    app.add_handler(CommandHandler("migrateusers", migrateusers))
+    app.add_handler(CommandHandler("migratebooks", migratebooks))
 
-    local_files_cleanup()
+    app.add_handler(MessageHandler(filters.TEXT, unknown_text))
+    app.add_handler(MessageHandler(filters.Document, downloader))
 
-    # j = updater.job_queue
-    # j = app.job_queue
-    j = JobQueue()
-    # j.run_repeating(feedchunk, 10)
-    # j.run_repeating(feedchunk, 60)
-    j.run_daily(feedchunk,
+
+    job = JobQueue.run_daily(
+        callback=feedchunk,
         days=(0, 1, 2, 3, 4, 5, 6),
         time=datetime.time(hour=10, minute=00, second=00, tzinfo=pytz.timezone('Europe/Moscow'))
     )
+
+    # app.job_queue(job)
+
+    local_files_cleanup()
+
+    app.run_polling()
+
+    # j = updater.job_queue
+    # j = app.job_queue
+    # j = ApplicationBuilder().job_queue()
+    # # j.run_repeating(feedchunk, 10)
+    # # j.run_repeating(feedchunk, 60)
+    # j.run_daily(feedchunk,
+        # days=(0, 1, 2, 3, 4, 5, 6),
+        # time=datetime.time(hour=10, minute=00, second=00, tzinfo=pytz.timezone('Europe/Moscow'))
+    # )
     # job_daily.run()
 
     # _add_handlers line is essenstial for command handling
-    _add_handlers(updater.dispatcher)
+    # _add_handlers(updater.dispatcher)
 
     # Start the Bot
     # start_polling() is non-blocking and will stop the bot gracefully.
-    updater.start_polling()
+    # updater.start_polling()
 
     # Run the bot until you press Ctrl-C or the process receives SIGINT,
     # SIGTERM or SIGABRT. This should be used most of the time, since
-    updater.idle()
+    # updater.idle()
 
 
 if __name__ == "__main__":
