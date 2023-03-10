@@ -377,7 +377,7 @@ async def changebook(update, context) -> None:
         await update.message.reply_text(f"You must specify only one argument\nYou specified: {len(args)} arguments")
         return
 
-    if bool(re.match(r"^([0-9]+)$", args[0])) is False:
+    if bool(re.match(r"^(\d+)$", args[0])) is False:
         await update.message.reply_text(f"Your argument must be a number")
         return
 
@@ -396,6 +396,9 @@ async def changebook(update, context) -> None:
     user = ChatClient(uid)
     user.from_dict(db_user)
     db_book = MONGODBMANAGER.get_book(new_book_index)
+    if db_book is None:
+        await update.message.reply_text(f"Book with index {new_book_index} does not exist")
+        return
 
     # If book is not yours and it is not shared, then 
     if not new_book_index in user.owned_book_indices and db_book.get('shared') is False:
@@ -631,8 +634,8 @@ async def feedchunk(context: CallbackContext):
         chunk_content = book_content[chunk_start:chunk_end]
         if chunk_content is None:
             update.message.reply_text("You have finished this book")
-            continue
-            # return
+            # continue
+            return
 
         # update.message.reply_text(chunk_content)
         await context.bot.send_message(chat_id=user._id, text=chunk_content)
