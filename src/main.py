@@ -202,17 +202,14 @@ async def downloader(update, context) -> None:
 
     try:
         user_doc = update.message.document
-        if not user_doc.file_name.endswith(".epub"):
-            await update.message.reply_text("You can upload only epub files")
-            return
+        user_file = await context.bot.get_file(user_doc.file_id)
+        await user_file.download_to_drive(custom_path=BUFFER)
 
         await update.message.reply_text("Uploading...")
         current_max_book_index = MONGODBMANAGER.get_max_book_index()
 
         # read file
-        with open(BUFFER, 'wb') as f:
-            # TODO: problem here
-            await context.bot.get_file(user_doc).download(out=f)
+        with open(BUFFER, 'r') as f:
             book_content = EpubManager.translateEpubToTxt(BUFFER)
             book = Book(uid, user_doc.file_name, book_content, index=current_max_book_index, content_length=len(book_content))
             insert_success = MONGODBMANAGER.insert_book(book)
