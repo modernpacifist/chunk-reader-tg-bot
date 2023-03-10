@@ -96,7 +96,6 @@ Admin commands:
 
 async def migrateusers(update, context) -> None:
     # TODO: double check this code, may be dangerous
-
     uid = update.message.chat.id
     db_user = MONGODBMANAGER.get_user(uid)
     if db_user is None:
@@ -212,14 +211,15 @@ async def downloader(update, context) -> None:
 
         # read file
         with open(BUFFER, 'wb') as f:
-            context.bot.get_file(user_doc).download(out=f)
+            # TODO: problem here
+            await context.bot.get_file(user_doc).download(out=f)
             book_content = EpubManager.translateEpubToTxt(BUFFER)
             book = Book(uid, user_doc.file_name, book_content, index=current_max_book_index, content_length=len(book_content))
             insert_success = MONGODBMANAGER.insert_book(book)
 
             # must increment user total books
             if insert_success is False:
-                update.message.reply_text("This book already exists in the database")
+                await update.message.reply_text("This book already exists in the database")
                 return
 
             # this line is buggy
@@ -238,12 +238,12 @@ async def downloader(update, context) -> None:
             MONGODBMANAGER.update_user(user)
 
     except Exception as e:
-        update.message.reply_text(f"File was not uploaded due to internal error.\n\nDebug info:\n{str(e)}")
+        await update.message.reply_text(f"File was not uploaded due to internal error.\n\nDebug info:\n{str(e)}")
         # console logging
         LOGGER.error(f"File was not uploaded due to internal error.\n\nDebug info:\n{str(e)}")
         return
 
-    update.message.reply_text("Successfully uploaded the book.")
+    await update.message.reply_text("Successfully uploaded the book.")
 
 
 # TODO: debug function/make migrate function to update db documents signatures
@@ -259,7 +259,7 @@ async def update(update, context) -> None:
         LOGGER.error(e)
 
     finally:
-        update.message.reply_text("User was successfully updated")
+        await update.message.reply_text("User was successfully updated")
 
 
 async def mybooks(update, context) -> None:
@@ -267,7 +267,7 @@ async def mybooks(update, context) -> None:
     uid = update.message.chat.id
     db_user = MONGODBMANAGER.get_user(uid)
     if db_user is None:
-        update.message.reply_text("You are not in database, begin use with /start command")
+        await update.message.reply_text("You are not in database, begin use with /start command")
         return
 
     user = ChatClient(uid)
@@ -639,30 +639,6 @@ async def feedchunk(context: CallbackContext):
         user.read_progress[db_book.get("title")] = chunk_end
         MONGODBMANAGER.update_user(user)
 
-        # chunk = 
-        # user_id = 777855967
-
-
-# def _add_handlers(dispatcher) -> None:
-    # dispatcher.add_handler(CommandHandler("start", start))
-    # dispatcher.add_handler(CommandHandler("mybooks", mybooks))
-    # dispatcher.add_handler(CommandHandler("help", help))
-    # dispatcher.add_handler(CommandHandler("nextchunk", nextchunk))
-    # dispatcher.add_handler(CommandHandler("changebook", changebook, pass_args=True))
-    # dispatcher.add_handler(CommandHandler("changechunksize", changechunksize, pass_args=True))
-    # dispatcher.add_handler(CommandHandler("sharebook", sharebook, pass_args=True))
-    # dispatcher.add_handler(CommandHandler("uid", uid))
-    # dispatcher.add_handler(CommandHandler("update", update))
-    # dispatcher.add_handler(CommandHandler("pause", pause))
-    # dispatcher.add_handler(CommandHandler("unpause", unpause))
-    # dispatcher.add_handler(CommandHandler("migrateusers", migrateusers))
-    # dispatcher.add_handler(CommandHandler("migratebooks", migratebooks))
-
-    # dispatcher.add_handler(MessageHandler(filters.Filters.text, unknown_text))
-    # dispatcher.add_handler(MessageHandler(filters.Filters.document, downloader))
-
-    # dispatcher.add_error_handler(error)
-
 
 def main():
     try:
@@ -686,43 +662,16 @@ def main():
     app.add_handler(CommandHandler("migratebooks", migratebooks))
 
     app.add_handler(MessageHandler(filters.TEXT, unknown_text))
-    app.add_handler(MessageHandler(filters.Document, downloader))
+    app.add_handler(MessageHandler(filters.Document.FileExtension("epub"), downloader))
 
     app.job_queue.run_daily(callback=feedchunk,
         time=datetime.time(hour=10, minute=00, second=00, tzinfo=pytz.timezone('Europe/Moscow')),
         days=(0, 1, 2, 3, 4, 5, 6)
     )
 
-    # job = JobQueue().run_daily( callback=feedchunk, time=datetime.time(hour=10, minute=00, second=00, tzinfo=pytz.timezone('Europe/Moscow')), days=(0, 1, 2, 3, 4, 5, 6))
-
-    # job.set_application(app)
-    # app.job_queue(job)
-
     local_files_cleanup()
 
     app.run_polling()
-
-    # j = updater.job_queue
-    # j = app.job_queue
-    # j = ApplicationBuilder().job_queue()
-    # # j.run_repeating(feedchunk, 10)
-    # # j.run_repeating(feedchunk, 60)
-    # j.run_daily(feedchunk,
-        # days=(0, 1, 2, 3, 4, 5, 6),
-        # time=datetime.time(hour=10, minute=00, second=00, tzinfo=pytz.timezone('Europe/Moscow'))
-    # )
-    # job_daily.run()
-
-    # _add_handlers line is essenstial for command handling
-    # _add_handlers(updater.dispatcher)
-
-    # Start the Bot
-    # start_polling() is non-blocking and will stop the bot gracefully.
-    # updater.start_polling()
-
-    # Run the bot until you press Ctrl-C or the process receives SIGINT,
-    # SIGTERM or SIGABRT. This should be used most of the time, since
-    # updater.idle()
 
 
 if __name__ == "__main__":
