@@ -205,34 +205,38 @@ async def downloader(update, context) -> None:
         user_file = await context.bot.get_file(user_doc.file_id)
         await user_file.download_to_drive(custom_path=BUFFER)
 
+        if not os.path.exists(BUFFER):
+            await update.message.reply_text(f"Buffer file {BUFFER} does not exist")
+            LOGGER.error(f"Could not download buffer file {BUFFER}")
+            return
+
         await update.message.reply_text("Uploading...")
         current_max_book_index = MONGODBMANAGER.get_max_book_index()
 
-        # read file
-        with open(BUFFER, 'r') as f:
-            book_content = EpubManager.translateEpubToTxt(BUFFER)
-            book = Book(uid, user_doc.file_name, book_content, index=current_max_book_index, content_length=len(book_content))
-            insert_success = MONGODBMANAGER.insert_book(book)
+        # translate epub to txt
+        book_content = EpubManager.translateEpubToTxt(BUFFER)
+        book = Book(uid, user_doc.file_name, book_content, index=current_max_book_index, content_length=len(book_content))
+        insert_success = MONGODBMANAGER.insert_book(book)
 
-            # must increment user total books
-            if insert_success is False:
-                await update.message.reply_text("This book already exists in the database")
-                return
+        # must increment user total books
+        if insert_success is False:
+            await update.message.reply_text("This book already exists in the database")
+            return
 
-            # this line is buggy
-            user.qty_of_owned_books += 1
+        # this line is buggy
+        user.qty_of_owned_books += 1
 
-            if user.read_progress.get(book.title) is None:
-                user.read_progress[book.title] = 0
-            
-            if book.index not in user.owned_book_indices:
-                user.owned_book_indices.append(book.index)
+        if user.read_progress.get(book.title) is None:
+            user.read_progress[book.title] = 0
+        
+        if book.index not in user.owned_book_indices:
+            user.owned_book_indices.append(book.index)
 
-            # check if this is the first book user uploads
-            if user.current_read_target is None:
-                user.current_read_target = book.index
+        # check if this is the first book user uploads
+        if user.current_read_target is None:
+            user.current_read_target = book.index
 
-            MONGODBMANAGER.update_user(user)
+        MONGODBMANAGER.update_user(user)
 
     except Exception as e:
         await update.message.reply_text(f"File was not uploaded due to internal error.\n\nDebug info:\n{str(e)}")
