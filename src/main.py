@@ -19,11 +19,8 @@ from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, Cal
 
 load_dotenv()
 
-BOT_TOKEN = os.getenv('BOT_TOKEN')
-DB_URI = os.getenv('MONGO_DB_URI')
-DB_NAME = os.getenv('MONGO_DB_NAME')
-MONGO_USER_COLLECTION_NAME = os.getenv('MONGO_USER_COLLECTION_NAME')
-MONGO_BOOK_COLLECTION_NAME = os.getenv('MONGO_BOOK_COLLECTION_NAME')
+# local imports
+import config
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO,
@@ -32,10 +29,10 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 LOGGER = logging.getLogger(__name__)
 
 MONGODBMANAGER = MongoDBManager(
-    db_uri=DB_URI,
-    db_name=DB_NAME,
-    db_user_collection_name=MONGO_USER_COLLECTION_NAME,
-    db_book_collection_name=MONGO_BOOK_COLLECTION_NAME,
+    db_uri=config.DB_URI,
+    db_name=config.DB_NAME,
+    db_user_collection_name=config.MONGO_USER_COLLECTION_NAME,
+    db_book_collection_name=config.MONGO_BOOK_COLLECTION_NAME,
 )
 
 # sample local buffer filename used to download 
@@ -674,7 +671,7 @@ def main():
         # print(e)
         # exit(1)
     try:
-        app = ApplicationBuilder().token(BOT_TOKEN).build()
+        app = ApplicationBuilder().token(config.BOT_TOKEN).build()
     except Exception as e:
         print(e)
         exit(1)
