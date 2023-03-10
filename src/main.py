@@ -15,15 +15,12 @@ from DBManager import MongoDBManager
 from EpubManager import EpubManager
 
 from dotenv import load_dotenv
-from telegram.ext import Updater, CommandHandler, MessageHandler, filters, CallbackContext
+from telegram.ext import Application, CommandHandler, MessageHandler, CallbackContext , JobQueue, filters
 
 load_dotenv()
 
-BOT_TOKEN = os.getenv('BOT_TOKEN')
-DB_URI = os.getenv('MONGO_DB_URI')
-DB_NAME = os.getenv('MONGO_DB_NAME')
-MONGO_USER_COLLECTION_NAME = os.getenv('MONGO_USER_COLLECTION_NAME')
-MONGO_BOOK_COLLECTION_NAME = os.getenv('MONGO_BOOK_COLLECTION_NAME')
+# local imports
+import config
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO,
@@ -32,10 +29,10 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 LOGGER = logging.getLogger(__name__)
 
 MONGODBMANAGER = MongoDBManager(
-    db_uri=DB_URI,
-    db_name=DB_NAME,
-    db_user_collection_name=MONGO_USER_COLLECTION_NAME,
-    db_book_collection_name=MONGO_BOOK_COLLECTION_NAME,
+    db_uri=config.DB_URI,
+    db_name=config.DB_NAME,
+    db_user_collection_name=config.MONGO_USER_COLLECTION_NAME,
+    db_book_collection_name=config.MONGO_BOOK_COLLECTION_NAME,
 )
 
 # sample local buffer filename used to download 
@@ -58,7 +55,7 @@ def local_files_cleanup():
 
 
 # tg functions start from here
-def start(update, context) -> None:
+async def start(update, context) -> None:
     # TODO: start must have a check if user already exists in db
     uid = update.message.chat.id
     uname = update.message.chat.first_name
@@ -72,13 +69,13 @@ def start(update, context) -> None:
         user.owned_book_indices = indices
 
     msg = MONGODBMANAGER.insert_new_user(user)
-    update.message.reply_text(msg)
+    await update.message.reply_text(msg)
     LOGGER.info(msg)
 
 
 # bot in-chat documentation
-def help(update, context) -> None:
-    update.message.reply_text("""
+async def help(update, context) -> None:
+    await update.message.reply_text("""
 If you have never used this bot before use /start command
 
 Available commands:
@@ -97,33 +94,32 @@ Admin commands:
 """)
 
 
-def migrateusers(update, context) -> None:
+async def migrateusers(update, context) -> None:
     # TODO: double check this code, may be dangerous
-
     uid = update.message.chat.id
     db_user = MONGODBMANAGER.get_user(uid)
     if db_user is None:
-        update.message.reply_text("You are not in database, begin use with /start command")
+        await update.message.reply_text("You are not in database, begin use with /start command")
         return
     
     user = ChatClient(uid)
     user.from_dict(db_user)
 
     if not user.admin:
-        update.message.reply_text("You have no administrator privileges")
+        await update.message.reply_text("You have no administrator privileges")
         return
 
     mongo_cursor = MONGODBMANAGER.get_all_users()
     # TODO: mongo_cursor can be None <10-02-23, modernpacifist> #
     db_users = [i for i in mongo_cursor]
     if len(db_users) == 0:
-        update.message.reply_text("No users in database")
+        await update.message.reply_text("No users in database")
         return 
 
     for db_user in db_users:
         user_uid = db_user.get('_id')
         if user_uid is None:
-            update.message.reply_text(f"Problem retrieving user doc with info: {db_user}")
+            await update.message.reply_text(f"Problem retrieving user doc with info: {db_user}")
             continue
 
         user = ChatClient(db_user.get('_id'))
@@ -131,43 +127,43 @@ def migrateusers(update, context) -> None:
 
         # TODO: double check this conditional, some fields may be deleted during update
         if db_user.keys() == user.__dict__.keys():
-            update.message.reply_text(f"Skipped user with uid: {user_uid}")
+            await update.message.reply_text(f"Skipped user with uid: {user_uid}")
             continue
 
         update_success = MONGODBMANAGER.update_user(user)
         if update_success is False:
-            update.message.reply_text(f"Problem updating user with uid: {user_uid}")
+            await update.message.reply_text(f"Problem updating user with uid: {user_uid}")
             continue
 
-        update.message.reply_text(f"Migrated user with uid: {user_uid}")
+        await update.message.reply_text(f"Migrated user with uid: {user_uid}")
 
 
-def migratebooks(update, context) -> None:
+async def migratebooks(update, context) -> None:
     # TODO: double check this code, may be dangerous
 
     uid = update.message.chat.id
     db_user = MONGODBMANAGER.get_user(uid)
     if db_user is None:
-        update.message.reply_text("You are not in database, begin use with /start command")
+        await update.message.reply_text("You are not in database, begin use with /start command")
         return
     
     user = ChatClient(uid)
     user.from_dict(db_user)
 
     if not user.admin:
-        update.message.reply_text("You have no administrator privileges")
+        await update.message.reply_text("You have no administrator privileges")
         return
 
     mongo_cursor = MONGODBMANAGER.get_all_books()
     db_books = [i for i in mongo_cursor]
     if len(db_books) == 0:
-        update.message.reply_text("No books in database")
+        await update.message.reply_text("No books in database")
         return 
 
     for db_book in db_books:
         book_id = db_book.get('_id')
         if book_id is None:
-            update.message.reply_text(f"Problem retrieving book doc with id: {db_book}")
+            await update.message.reply_text(f"Problem retrieving book doc with id: {db_book}")
             continue
 
         book = Book()
@@ -175,30 +171,30 @@ def migratebooks(update, context) -> None:
 
         # TODO: double check this conditional, some fields may be deleted during update
         if db_book.keys() == book.__dict__.keys():
-            update.message.reply_text(f"Skipped book with id: {book_id}")
+            await update.message.reply_text(f"Skipped book with id: {book_id}")
             continue
 
         update_success = MONGODBMANAGER.update_book(book)
         if update_success is False:
-            update.message.reply_text(f"Problem updating book with id: {book_id}")
+            await update.message.reply_text(f"Problem updating book with id: {book_id}")
             continue
 
-        update.message.reply_text(f"Migrated book with id: {book_id}")
+        await update.message.reply_text(f"Migrated book with id: {book_id}")
 
 
-def uid(update, context) -> None:
+async def uid(update, context) -> None:
     uid = update.message.chat.id
 
-    update.message.reply_text(f"Your UID: {uid}", parse_mode="html")
+    await update.message.reply_text(f"Your UID: {uid}", parse_mode="html")
 
 
 # right now this function manages epub to txt conversion
-def downloader(update, context) -> None:
+async def downloader(update, context) -> None:
     # this must be taken from db
     uid = update.message.chat.id
     db_user = MONGODBMANAGER.get_user(uid)
     if db_user is None:
-        update.message.reply_text("You are not in database, begin use with /start command")
+        await update.message.reply_text("You are not in database, begin use with /start command")
         return
 
     user = ChatClient(uid)
@@ -206,51 +202,53 @@ def downloader(update, context) -> None:
 
     try:
         user_doc = update.message.document
-        if not user_doc.file_name.endswith(".epub"):
-            update.message.reply_text("You can upload only epub files")
+        user_file = await context.bot.get_file(user_doc.file_id)
+        await user_file.download_to_drive(custom_path=BUFFER)
+
+        if not os.path.exists(BUFFER):
+            await update.message.reply_text(f"Buffer file {BUFFER} does not exist")
+            LOGGER.error(f"Could not download buffer file {BUFFER}")
             return
 
-        update.message.reply_text("Uploading...")
+        await update.message.reply_text("Uploading...")
         current_max_book_index = MONGODBMANAGER.get_max_book_index()
 
-        # read file
-        with open(BUFFER, 'wb') as f:
-            context.bot.get_file(user_doc).download(out=f)
-            book_content = EpubManager.translateEpubToTxt(BUFFER)
-            book = Book(uid, user_doc.file_name, book_content, index=current_max_book_index, content_length=len(book_content))
-            insert_success = MONGODBMANAGER.insert_book(book)
+        # translate epub to txt
+        book_content = EpubManager.translateEpubToTxt(BUFFER)
+        book = Book(uid, user_doc.file_name, book_content, index=current_max_book_index, content_length=len(book_content))
+        insert_success = MONGODBMANAGER.insert_book(book)
 
-            # must increment user total books
-            if insert_success is False:
-                update.message.reply_text("This book already exists in the database")
-                return
+        # must increment user total books
+        if insert_success is False:
+            await update.message.reply_text("This book already exists in the database")
+            return
 
-            # this line is buggy
-            user.qty_of_owned_books += 1
+        # this line is buggy
+        user.qty_of_owned_books += 1
 
-            if user.read_progress.get(book.title) is None:
-                user.read_progress[book.title] = 0
-            
-            if book.index not in user.owned_book_indices:
-                user.owned_book_indices.append(book.index)
+        if user.read_progress.get(book.title) is None:
+            user.read_progress[book.title] = 0
+        
+        if book.index not in user.owned_book_indices:
+            user.owned_book_indices.append(book.index)
 
-            # check if this is the first book user uploads
-            if user.current_read_target is None:
-                user.current_read_target = book.index
+        # check if this is the first book user uploads
+        if user.current_read_target is None:
+            user.current_read_target = book.index
 
-            MONGODBMANAGER.update_user(user)
+        MONGODBMANAGER.update_user(user)
 
     except Exception as e:
-        update.message.reply_text(f"File was not uploaded due to internal error.\n\nDebug info:\n{str(e)}")
+        await update.message.reply_text(f"File was not uploaded due to internal error.\n\nDebug info:\n{str(e)}")
         # console logging
         LOGGER.error(f"File was not uploaded due to internal error.\n\nDebug info:\n{str(e)}")
         return
 
-    update.message.reply_text("Successfully uploaded the book.")
+    await update.message.reply_text("Successfully uploaded the book.")
 
 
 # TODO: debug function/make migrate function to update db documents signatures
-def update(update, context) -> None:
+async def update(update, context) -> None:
     uid = update.message.chat.id
     user = ChatClient(uid)
     user.current_read_target = 0
@@ -262,15 +260,15 @@ def update(update, context) -> None:
         LOGGER.error(e)
 
     finally:
-        update.message.reply_text("User was successfully updated")
+        await update.message.reply_text("User was successfully updated")
 
 
-def mybooks(update, context) -> None:
+async def mybooks(update, context) -> None:
     # TODO: append a text chunk to the message with shared books with you
     uid = update.message.chat.id
     db_user = MONGODBMANAGER.get_user(uid)
     if db_user is None:
-        update.message.reply_text("You are not in database, begin use with /start command")
+        await update.message.reply_text("You are not in database, begin use with /start command")
         return
 
     user = ChatClient(uid)
@@ -341,21 +339,21 @@ def mybooks(update, context) -> None:
             files_list_message += f"Shared books:\n{shared_books_message}\n"
 
         if files_list_message != "":
-            update.message.reply_text(f"{currently_reading_string}{files_list_message}")
+            await update.message.reply_text(f"{currently_reading_string}{files_list_message}")
             return
 
-        update.message.reply_text("You have not uploaded any books yet")
+        await update.message.reply_text("You have not uploaded any books yet")
 
     except Exception as e:
         LOGGER.error(e)
-        update.message.reply_text(f"Internal error: {str(e)}")
+        await update.message.reply_text(f"Internal error: {str(e)}")
 
 
-def renamebook(update, context):
+async def renamebook(update, context):
     uid = update.message.chat.id
     db_user = MONGODBMANAGER.get_user(uid)
     if db_user is None:
-        update.message.reply_text("You are not in database, begin use with /start command")
+        await update.message.reply_text("You are not in database, begin use with /start command")
         return
 
     user = ChatClient(uid)
@@ -370,78 +368,86 @@ def renamebook(update, context):
 
 
 # not exactly changebook, but change currently reading book
-def changebook(update, context) -> None:
+async def changebook(update, context) -> None:
     # TODO: add a choose index functionality out of user-owned book indices
     # TODO: add a check if book was deleted and current read target will be automatically updated with the new index
 
     args = context.args
     if len(args) != 1:
-        update.message.reply_text(f"You must specify only one argument\nYou specified: {len(args)} arguments")
+        await update.message.reply_text(f"You must specify only one argument\nYou specified: {len(args)} arguments")
         return
 
-    if bool(re.match(r"^([0-9]+)$", args[0])) is False:
-        update.message.reply_text(f"Your argument must be a number")
+    if bool(re.match(r"^(\d+)$", args[0])) is False:
+        await update.message.reply_text(f"Your argument must be a number")
         return
 
     try:
         new_book_index = int(args[0])
     except Exception as e:
-        update.message.reply_text(str(e))
+        await update.message.reply_text(str(e))
         return
 
     uid = update.message.chat.id
     db_user = MONGODBMANAGER.get_user(uid)
     if db_user is None:
-        update.message.reply_text("You are not in database, begin use with /start command")
+        await update.message.reply_text("You are not in database, begin use with /start command")
         return
 
     user = ChatClient(uid)
     user.from_dict(db_user)
+
+    if user.current_read_target == new_book_index:
+        await update.message.reply_text("You are already reading this book")
+        return
+
     db_book = MONGODBMANAGER.get_book(new_book_index)
+    if db_book is None:
+        await update.message.reply_text(f"Book with index {new_book_index} does not exist")
+        return
 
     # If book is not yours and it is not shared, then 
     if not new_book_index in user.owned_book_indices and db_book.get('shared') is False:
-        update.message.reply_text(f"You do not own book with index: {new_book_index}")
+        await update.message.reply_text(f"You do not own book with index: {new_book_index}")
         return
 
     # If book is shared and you're trying to read it, creates progress in your db user record
     # TODO: user.current_read_target no check for null value <10-02-23, modernpacifist> #
     user.current_read_target = new_book_index
     if db_book.get('shared') is not None:
-        update.message.reply_text(f"You are reading a shared book with index: {new_book_index}")
+        await update.message.reply_text(f"You are reading a shared book with index: {new_book_index}")
         shared_book_title = db_book.get("title")
         if user.read_progress.get(shared_book_title) is None:
             user.read_progress[shared_book_title] = 0
 
     MONGODBMANAGER.update_user(user)
-    update.message.reply_text(f"Current book was successfully changed")
+    await update.message.reply_text(f"Current book was successfully changed")
 
 
-def changechunksize(update, context) -> None:
+async def changechunksize(update, context) -> None:
     args = context.args
     if len(args) != 1:
-        update.message.reply_text(f"You must specify only one argument\nYou specified: {len(args)}")
+        await update.message.reply_text(f"You must specify only one argument\nYou specified: {len(args)}")
         return
 
     if bool(re.match(r"^([0-9]+)$", args[0])) is False:
-        update.message.reply_text(f"Your argument must be a number")
+        await update.message.reply_text(f"Your argument must be a number")
         return
 
     try:
         new_chunk_size = int(args[0])
     except Exception as e:
-        update.message.reply_text(str(e))
+        await update.message.reply_text(str(e))
         LOGGER.error(e)
         return
 
     if new_chunk_size > 2000 or new_chunk_size < 1:
-        update.message.reply_text("Chunk size must not exceed 4000 and be at least 1")
+        await update.message.reply_text("Chunk size must not exceed 4000 and be at least 1")
         return
 
     uid = update.message.chat.id
     db_user = MONGODBMANAGER.get_user(uid)
     if db_user is None:
-        update.message.reply_text("You are not in database, begin use with /start command")
+        await update.message.reply_text("You are not in database, begin use with /start command")
         return
 
     user = ChatClient(uid)
@@ -451,15 +457,15 @@ def changechunksize(update, context) -> None:
 
     MONGODBMANAGER.update_user(user)
 
-    update.message.reply_text(f"Chunk size successfully changed")
+    await update.message.reply_text(f"Chunk size successfully changed")
 
 
 # TODO: add a flag to book doc as {shared: true/false}
-def sharebook(update, context) -> None:
+async def sharebook(update, context) -> None:
     uid = update.message.chat.id
     db_user = MONGODBMANAGER.get_user(uid)
     if db_user is None:
-        update.message.reply_text("You are not in database, begin use with /start command")
+        await update.message.reply_text("You are not in database, begin use with /start command")
         return
 
     user = ChatClient(uid)
@@ -467,21 +473,21 @@ def sharebook(update, context) -> None:
 
     args = context.args
     if len(args) != 1:
-        update.message.reply_text(f"You must specify only one argument\nYou specified: {len(args)}")
+        await update.message.reply_text(f"You must specify only one argument\nYou specified: {len(args)}")
         return
 
     if bool(re.match(r"^([0-9]+)$", args[0])) is False:
-        update.message.reply_text(f"Your argument must be a number")
+        await update.message.reply_text(f"Your argument must be a number")
         return
 
     try:
         book_index = int(args[0])
     except Exception as e:
-        update.message.reply_text(str(e))
+        await update.message.reply_text(str(e))
         return
 
     if not book_index in user.owned_book_indices:
-        update.message.reply_text(f"You do not own book with specified index {book_index}")
+        await update.message.reply_text(f"You do not own book with specified index {book_index}")
         return
 
     db_book = MONGODBMANAGER.get_book(book_index)
@@ -490,14 +496,14 @@ def sharebook(update, context) -> None:
 
     flag = MONGODBMANAGER.update_book(book, query={"shared": True})
     if flag is True:
-        update.message.reply_text(f"You successfully shared a book with index {book_index}")
+        await update.message.reply_text(f"You successfully shared a book with index {book_index}")
 
 
-def nextchunk(update, context) -> None:
+async def nextchunk(update, context) -> None:
     uid = update.message.chat.id
     db_user = MONGODBMANAGER.get_user(uid)
     if db_user is None:
-        update.message.reply_text("You are not in database, begin use with /start command")
+        await update.message.reply_text("You are not in database, begin use with /start command")
         return
 
     user = ChatClient(uid)
@@ -505,7 +511,7 @@ def nextchunk(update, context) -> None:
 
     db_book = MONGODBMANAGER.get_book(user.current_read_target)
     if db_book is None:
-        update.message.reply_text(f"Book with index {user.current_read_target} not found\nChange your current book")
+        await update.message.reply_text(f"Book with index {user.current_read_target} not found\nChange your current book")
         return
 
     book_content = db_book.get("content")
@@ -527,21 +533,21 @@ def nextchunk(update, context) -> None:
     # TODO: bug here, if indexing exceeds book_content max length
     chunk_content = book_content[chunk_start:chunk_end]
     if chunk_content is None:
-        update.message.reply_text("You have finished this book")
+        await update.message.reply_text("You have finished this book")
         return
 
-    update.message.reply_text(chunk_content)
+    await update.message.reply_text(chunk_content)
 
     user.read_progress[db_book.get("title")] = chunk_end
     MONGODBMANAGER.update_user(user)
 
 
 # stop using the bot
-def pause(update, context) -> None:
+async def pause(update, context) -> None:
     uid = update.message.chat.id
     db_user = MONGODBMANAGER.get_user(uid)
     if db_user is None:
-        update.message.reply_text("You are not in database, begin use with /start command")
+        await update.message.reply_text("You are not in database, begin use with /start command")
         return
 
     user = ChatClient(uid)
@@ -553,17 +559,17 @@ def pause(update, context) -> None:
 
         flag = MONGODBMANAGER.update_user(user)
         if flag is True:
-            update.message.reply_text("You successfully paused your subscription.\nYou will stop receiving book chunks.")
+            await update.message.reply_text("You successfully paused your subscription.\nYou will stop receiving book chunks.")
 
     else:
-        update.message.reply_text("You already paused your subscription")
+        await update.message.reply_text("You already paused your subscription")
 
 
-def unpause(update, context) -> None:
+async def unpause(update, context) -> None:
     uid = update.message.chat.id
     db_user = MONGODBMANAGER.get_user(uid)
     if db_user is None:
-        update.message.reply_text("You are not in database, begin use with /start command")
+        await update.message.reply_text("You are not in database, begin use with /start command")
         return
 
     user = ChatClient(uid)
@@ -575,21 +581,21 @@ def unpause(update, context) -> None:
 
         flag = MONGODBMANAGER.update_user(user)
         if flag is True:
-            update.message.reply_text("You successfully unpaused your subscription.\nYou will start receiving book chunks.")
+            await update.message.reply_text("You successfully unpaused your subscription.\nYou will start receiving book chunks.")
 
     else:
-        update.message.reply_text("You already unpaused your subscription")
+        await update.message.reply_text("You already unpaused your subscription")
 
 
-def unknown_text(update, context) -> None:
-    update.message.reply_text("Unknown command type /help to get a list of available commands")
+async def unknown_text(update, context) -> None:
+    await update.message.reply_text("Unknown command type /help to get a list of available commands")
 
 
-def error(update, context) -> None:
+async def error(update, context) -> None:
     LOGGER.warning(f"Update {update} caused error {context.error}")
 
 
-def feedchunk(context: CallbackContext):
+async def feedchunk(context: CallbackContext):
     # LOGGER.info(f"Time: {datetime} Executing feedchunk command")
     # send message to all users
     mongo_current_users_cursor = MONGODBMANAGER.get_current_users_ids()
@@ -633,69 +639,48 @@ def feedchunk(context: CallbackContext):
         chunk_content = book_content[chunk_start:chunk_end]
         if chunk_content is None:
             update.message.reply_text("You have finished this book")
-            continue
-            # return
+            # continue
+            return
 
         # update.message.reply_text(chunk_content)
-        context.bot.send_message(chat_id=user._id, text=chunk_content)
+        await context.bot.send_message(chat_id=user._id, text=chunk_content)
 
         user.read_progress[db_book.get("title")] = chunk_end
         MONGODBMANAGER.update_user(user)
 
-        # chunk = 
-        # user_id = 777855967
-
-
-def _add_handlers(dispatcher) -> None:
-    dispatcher.add_handler(CommandHandler("start", start))
-    # dispatcher.add_handler(CommandHandler("start", start, pass_job_queue=True))
-    dispatcher.add_handler(CommandHandler("mybooks", mybooks))
-    dispatcher.add_handler(CommandHandler("help", help))
-    dispatcher.add_handler(CommandHandler("nextchunk", nextchunk))
-    dispatcher.add_handler(CommandHandler("changebook", changebook, pass_args=True))
-    dispatcher.add_handler(CommandHandler("changechunksize", changechunksize, pass_args=True))
-    dispatcher.add_handler(CommandHandler("sharebook", sharebook, pass_args=True))
-    dispatcher.add_handler(CommandHandler("uid", uid))
-    dispatcher.add_handler(CommandHandler("update", update))
-    dispatcher.add_handler(CommandHandler("pause", pause))
-    dispatcher.add_handler(CommandHandler("unpause", unpause))
-    dispatcher.add_handler(CommandHandler("migrateusers", migrateusers))
-    dispatcher.add_handler(CommandHandler("migratebooks", migratebooks))
-
-    dispatcher.add_handler(MessageHandler(filters.Filters.text, unknown_text))
-    dispatcher.add_handler(MessageHandler(filters.Filters.document, downloader))
-
-    dispatcher.add_error_handler(error)
-
 
 def main():
     try:
-        updater = Updater(BOT_TOKEN)
+        app = Application.builder().token(config.BOT_TOKEN).build()
     except Exception as e:
         print(e)
         exit(1)
 
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("mybooks", mybooks))
+    app.add_handler(CommandHandler("help", help))
+    app.add_handler(CommandHandler("nextchunk", nextchunk))
+    app.add_handler(CommandHandler("changebook", changebook))
+    app.add_handler(CommandHandler("changechunksize", changechunksize))
+    app.add_handler(CommandHandler("sharebook", sharebook))
+    app.add_handler(CommandHandler("uid", uid))
+    app.add_handler(CommandHandler("update", update))
+    app.add_handler(CommandHandler("pause", pause))
+    app.add_handler(CommandHandler("unpause", unpause))
+    app.add_handler(CommandHandler("migrateusers", migrateusers))
+    app.add_handler(CommandHandler("migratebooks", migratebooks))
+
+    app.add_handler(MessageHandler(filters.TEXT, unknown_text))
+    app.add_handler(MessageHandler(filters.Document.FileExtension("epub"), downloader))
+
+    app.job_queue.run_daily(callback=feedchunk,
+        time=datetime.time(hour=10, minute=00, second=00, tzinfo=pytz.timezone('Europe/Moscow')),
+        days=(0, 1, 2, 3, 4, 5, 6)
+    )
+
     local_files_cleanup()
 
-    j = updater.job_queue
-    # j.run_repeating(feedchunk, 10)
-    # j.run_repeating(feedchunk, 60)
-    j.run_daily(feedchunk,
-        days=(0, 1, 2, 3, 4, 5, 6),
-        time=datetime.time(hour=10, minute=00, second=00, tzinfo=pytz.timezone('Europe/Moscow'))
-    )
-    # job_daily.run()
-
-    # _add_handlers line is essenstial for command handling
-    _add_handlers(updater.dispatcher)
-
-    # Start the Bot
-    # start_polling() is non-blocking and will stop the bot gracefully.
-    updater.start_polling()
-
-    # Run the bot until you press Ctrl-C or the process receives SIGINT,
-    # SIGTERM or SIGABRT. This should be used most of the time, since
-    updater.idle()
+    app.run_polling()
 
 
 if __name__ == "__main__":

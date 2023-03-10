@@ -9,15 +9,13 @@ packages = [{include = "telegram_chunk_reader"}]
 [tool.poetry.dependencies]
 python = "^3.9"
 beautifulsoup4 = "4.11.1"
-cleantext = "1.1.4"
 ebooklib = "0.17.1"
 pymongo = "4.2.0"
 pypdf2 = "3.0.1"
 python-dotenv = "0.21.0"
 pytz = "2022.1"
 textblob = "0.17.1"
-python-telegram-bot = "20.0"
-epub2txt = "0.1.1"
+python-telegram-bot = {extras = ["job-queue"], version = "^20.1"}
 
 
 [build-system]
