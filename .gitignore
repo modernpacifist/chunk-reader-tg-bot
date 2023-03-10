@@ -1,6 +1,8 @@
 .env
+.env_docker
 __pycache__/
 *.pdf
 *.txt
 *.epub
 *.buffer
+data/

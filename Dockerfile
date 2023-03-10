@@ -1,18 +1,16 @@
 FROM python:3.9-alpine
 
 # Set the working directory in the container
-WORKDIR /app
+RUN mkdir -m 777 /app
 
-# Install the required Python packages
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install poetry==1.3.2
+COPY poetry.lock pyproject.toml .env /app/
 
 # Copy the Python script and requirements file to the container
-COPY src/* .
+COPY src/* /app/
 
-# Set environment variables for MongoDB
-ENV MONGO_HOST=mongodb
-ENV MONGO_PORT=27017
+WORKDIR /app/
 
-# Command to run the Python script
-CMD ["python", "main.py"]
+RUN poetry --no-root install
+
+ENTRYPOINT ["poetry", "run", "python3.9", "main.py"]

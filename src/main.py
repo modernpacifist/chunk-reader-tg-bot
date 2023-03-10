@@ -15,7 +15,13 @@ from DBManager import MongoDBManager
 from EpubManager import EpubManager
 
 from dotenv import load_dotenv
-from telegram.ext import Application, CommandHandler, MessageHandler, CallbackContext , JobQueue, filters
+from telegram.ext import (
+    Application,
+    CommandHandler,
+    MessageHandler,
+    CallbackContext,
+    filters,
+)
 
 load_dotenv()
 
@@ -33,6 +39,8 @@ MONGODBMANAGER = MongoDBManager(
     db_name=config.DB_NAME,
     db_user_collection_name=config.MONGO_USER_COLLECTION_NAME,
     db_book_collection_name=config.MONGO_BOOK_COLLECTION_NAME,
+    username=config.MONGO_USERNAME,
+    password=config.MONGO_PASSWORD,
 )
 
 # sample local buffer filename used to download 
