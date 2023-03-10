@@ -13,6 +13,9 @@ DB_URI = os.getenv('MONGO_DB_URI')
 DB_NAME = os.getenv('MONGO_DB_NAME')
 MONGO_USER_COLLECTION_NAME = os.getenv('MONGO_USER_COLLECTION_NAME')
 MONGO_BOOK_COLLECTION_NAME = os.getenv('MONGO_BOOK_COLLECTION_NAME')
+# optional variables for docker
+MONGO_USERNAME = os.getenv('MONGO_USERNAME')
+MONGO_PASSWORD = os.getenv('MONGO_PASSWORD')
 
 if not all([BOT_TOKEN, DB_URI, DB_NAME, MONGO_USER_COLLECTION_NAME, MONGO_BOOK_COLLECTION_NAME]):
     raise Exception("Missing required environment variables")
