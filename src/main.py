@@ -14,7 +14,6 @@ from Book import Book
 from DBManager import MongoDBManager
 from EpubManager import EpubManager
 
-from dotenv import load_dotenv
 from telegram.ext import (
     Application,
     CommandHandler,
@@ -22,8 +21,6 @@ from telegram.ext import (
     CallbackContext,
     filters,
 )
-
-load_dotenv()
 
 # local imports
 import config
