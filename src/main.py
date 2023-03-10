@@ -395,6 +395,11 @@ async def changebook(update, context) -> None:
 
     user = ChatClient(uid)
     user.from_dict(db_user)
+
+    if user.current_read_target == new_book_index:
+        await update.message.reply_text("You are already reading this book")
+        return
+
     db_book = MONGODBMANAGER.get_book(new_book_index)
     if db_book is None:
         await update.message.reply_text(f"Book with index {new_book_index} does not exist")
