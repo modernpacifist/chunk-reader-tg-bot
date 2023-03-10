@@ -9,7 +9,6 @@ packages = [{include = "telegram_chunk_reader"}]
 [tool.poetry.dependencies]
 python = "^3.9"
 beautifulsoup4 = "4.11.1"
-cleantext = "1.1.4"
 ebooklib = "0.17.1"
 pymongo = "4.2.0"
 pypdf2 = "3.0.1"

@@ -83,21 +83,6 @@ files = [
 ]
 
 [[package]]
-name = "cleantext"
-version = "1.1.4"
-description = "An open-source python package to clean raw text data"
-category = "main"
-optional = false
-python-versions = "*"
-files = [
-    {file = "cleantext-1.1.4-py3-none-any.whl", hash = "sha256:138a658a8084796793910c876140002435ffc7ce51a9abf28d2a6b059a7a4d13"},
-    {file = "cleantext-1.1.4.tar.gz", hash = "sha256:854003de912406d8d821623774b307dc6f0626fd9fac0bdc5d24864ee3f37578"},
-]
-
-[package.dependencies]
-nltk = "*"
-
-[[package]]
 name = "click"
 version = "8.1.3"
 description = "Composable command line interface toolkit"
@@ -810,4 +795,4 @@ test = ["pytest (>=4.3)", "pytest-mock (>=3.3)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "f2282f7f7ce14561e32b54be5dc2d014bd453b9668f7dc7db1fb1e90dd5a0c4f"
+content-hash = "e3635239f46eac5958e4a62a3ab454159f143e72f95935481cf1e88959406628"
