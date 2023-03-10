@@ -16,7 +16,7 @@ pypdf2 = "3.0.1"
 python-dotenv = "0.21.0"
 pytz = "2022.1"
 textblob = "0.17.1"
-python-telegram-bot = "20.0"
+python-telegram-bot = {extras = ["job-queue"], version = "^20.1"}
 
 
 [build-system]
