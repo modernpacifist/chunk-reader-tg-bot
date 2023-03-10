@@ -3,8 +3,8 @@
 ```
 mongoimport --jsonArray --db tg-chunk-reader --collection BookData --file BookData.json
 ```
-### Connect to mongo from compass to wsl 2
-Run as root:
+### Connect to mongo from compass to wsl2
+Run as root in wsl2 shell:
 ```
 mongod --bind_ip_all
 ```
