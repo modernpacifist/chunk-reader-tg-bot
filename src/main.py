@@ -650,7 +650,7 @@ async def feedchunk(context: CallbackContext):
 
         if len(chunk_content) > TELEGRAM_MESSAGE_LIMIT:
             chunk_content = chunk_content[:TELEGRAM_MESSAGE_LIMIT]
-            chunk_end -= len(chunk_content) - len(chunk_content[:TELEGRAM_MESSAGE_LIMIT])
+            chunk_end -= len(chunk_content[TELEGRAM_MESSAGE_LIMIT:])
 
         await context.bot.send_message(chat_id=user._id, text=chunk_content)
 
