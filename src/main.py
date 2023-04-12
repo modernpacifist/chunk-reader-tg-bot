@@ -662,7 +662,7 @@ def main():
     try:
         app = Application.builder().token(config.BOT_TOKEN).build()
     except Exception as e:
-        print(e)
+        LOGGER.error(e)
         exit(1)
 
     app.add_handler(CommandHandler("start", start))
