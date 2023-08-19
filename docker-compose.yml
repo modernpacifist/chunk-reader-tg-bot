@@ -1,7 +1,7 @@
 version: '3.3'
 
 services:
-  mongocontainer:
+  mongo-db:
     image: mongo
     restart: always
     ports:
@@ -16,4 +16,4 @@ services:
   tg-bot:
     build: .
     depends_on:
-      - mongocontainer
+      - mongo-db

@@ -25,10 +25,6 @@ from telegram.ext import (
 # local imports
 import config
 
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=logging.INFO,
-    handlers=[logging.FileHandler("/tmp/gcsync_debug.log"), logging.StreamHandler()])
-
 LOGGER = logging.getLogger(__name__)
 
 MONGODBMANAGER = MongoDBManager(
@@ -70,9 +66,10 @@ async def start(update, context) -> None:
     # TODO: this can return None
     book_indices = MONGODBMANAGER.get_user_books(uid)
 
-    indices = [i.get('index') for i in book_indices]
-    if indices is not None:
-        user.owned_book_indices = indices
+    if book_indices is not None:
+        indices = [i.get('index') for i in book_indices]
+        if indices is not None:
+            user.owned_book_indices = indices
 
     msg = MONGODBMANAGER.insert_new_user(user)
     await update.message.reply_text(msg)

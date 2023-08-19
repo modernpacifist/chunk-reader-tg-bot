@@ -1,0 +1,4 @@
+[mongo]
+host=mongo-db
+username=log
+password=pass
