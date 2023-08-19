@@ -11,7 +11,6 @@ import pytz
 
 from Client import ChatClient
 from Book import Book
-from DBManager import MongoDBManager
 from EpubManager import EpubManager
 
 from telegram.ext import (
@@ -27,16 +26,7 @@ import config
 
 LOGGER = logging.getLogger(__name__)
 
-MONGODBMANAGER = MongoDBManager(
-    db_uri=config.DB_URI,
-    db_name=config.DB_NAME,
-    db_user_collection_name=config.MONGO_USER_COLLECTION_NAME,
-    db_book_collection_name=config.MONGO_BOOK_COLLECTION_NAME,
-    username=config.MONGO_USERNAME,
-    password=config.MONGO_PASSWORD,
-)
-
-# sample local buffer filename used to download 
+# sample local buffer filename used to download
 BUFFER = "filename.buffer"
 TELEGRAM_MESSAGE_LIMIT = 4096
 
@@ -64,14 +54,13 @@ async def start(update, context) -> None:
 
     user = ChatClient(uid, uname)
     # TODO: this can return None
-    book_indices = MONGODBMANAGER.get_user_books(uid)
+    book_indices = config.MONGODBMANAGER.get_user_books(uid)
 
-    if book_indices is not None:
-        indices = [i.get('index') for i in book_indices]
-        if indices is not None:
-            user.owned_book_indices = indices
+    indices = [i.get('index') for i in book_indices]
+    if indices is not None:
+        user.owned_book_indices = indices
 
-    msg = MONGODBMANAGER.insert_new_user(user)
+    msg = config.MONGODBMANAGER.insert_new_user(user)
     await update.message.reply_text(msg)
     LOGGER.info(msg)
 
@@ -100,7 +89,7 @@ Admin commands:
 async def migrateusers(update, context) -> None:
     # TODO: double check this code, may be dangerous
     uid = update.message.chat.id
-    db_user = MONGODBMANAGER.get_user(uid)
+    db_user = config.MONGODBMANAGER.get_user(uid)
     if db_user is None:
         await update.message.reply_text("You are not in database, begin use with /start command")
         return
@@ -112,7 +101,7 @@ async def migrateusers(update, context) -> None:
         await update.message.reply_text("You have no administrator privileges")
         return
 
-    mongo_cursor = MONGODBMANAGER.get_all_users()
+    mongo_cursor = config.MONGODBMANAGER.get_all_users()
     # TODO: mongo_cursor can be None <10-02-23, modernpacifist> #
     db_users = [i for i in mongo_cursor]
     if len(db_users) == 0:
@@ -133,7 +122,7 @@ async def migrateusers(update, context) -> None:
             await update.message.reply_text(f"Skipped user with uid: {user_uid}")
             continue
 
-        update_success = MONGODBMANAGER.update_user(user)
+        update_success = config.MONGODBMANAGER.update_user(user)
         if update_success is False:
             await update.message.reply_text(f"Problem updating user with uid: {user_uid}")
             continue
@@ -145,7 +134,7 @@ async def migratebooks(update, context) -> None:
     # TODO: double check this code, may be dangerous
 
     uid = update.message.chat.id
-    db_user = MONGODBMANAGER.get_user(uid)
+    db_user = config.MONGODBMANAGER.get_user(uid)
     if db_user is None:
         await update.message.reply_text("You are not in database, begin use with /start command")
         return
@@ -157,7 +146,7 @@ async def migratebooks(update, context) -> None:
         await update.message.reply_text("You have no administrator privileges")
         return
 
-    mongo_cursor = MONGODBMANAGER.get_all_books()
+    mongo_cursor = config.MONGODBMANAGER.get_all_books()
     db_books = [i for i in mongo_cursor]
     if len(db_books) == 0:
         await update.message.reply_text("No books in database")
@@ -177,7 +166,7 @@ async def migratebooks(update, context) -> None:
             await update.message.reply_text(f"Skipped book with id: {book_id}")
             continue
 
-        update_success = MONGODBMANAGER.update_book(book)
+        update_success = config.MONGODBMANAGER.update_book(book)
         if update_success is False:
             await update.message.reply_text(f"Problem updating book with id: {book_id}")
             continue
@@ -195,7 +184,7 @@ async def uid(update, context) -> None:
 async def downloader(update, context) -> None:
     # this must be taken from db
     uid = update.message.chat.id
-    db_user = MONGODBMANAGER.get_user(uid)
+    db_user = config.MONGODBMANAGER.get_user(uid)
     if db_user is None:
         await update.message.reply_text("You are not in database, begin use with /start command")
         return
@@ -214,12 +203,12 @@ async def downloader(update, context) -> None:
             return
 
         await update.message.reply_text("Uploading...")
-        current_max_book_index = MONGODBMANAGER.get_max_book_index()
+        current_max_book_index = config.MONGODBMANAGER.get_max_book_index()
 
         # translate epub to txt
         book_content = EpubManager.translateEpubToTxt(BUFFER)
         book = Book(uid, user_doc.file_name, book_content, index=current_max_book_index, content_length=len(book_content))
-        insert_success = MONGODBMANAGER.insert_book(book)
+        insert_success = config.MONGODBMANAGER.insert_book(book)
 
         # must increment user total books
         if insert_success is False:
@@ -239,7 +228,7 @@ async def downloader(update, context) -> None:
         if user.current_read_target is None:
             user.current_read_target = book.index
 
-        MONGODBMANAGER.update_user(user)
+        config.MONGODBMANAGER.update_user(user)
 
     except Exception as e:
         await update.message.reply_text(f"File was not uploaded due to internal error.\n\nDebug info:\n{str(e)}")
@@ -257,7 +246,7 @@ async def update(update, context) -> None:
     user.current_read_target = 0
 
     try:
-        MONGODBMANAGER.update_user(user)
+        config.MONGODBMANAGER.update_user(user)
 
     except Exception as e:
         LOGGER.error(e)
@@ -269,7 +258,7 @@ async def update(update, context) -> None:
 async def mybooks(update, context) -> None:
     # TODO: append a text chunk to the message with shared books with you
     uid = update.message.chat.id
-    db_user = MONGODBMANAGER.get_user(uid)
+    db_user = config.MONGODBMANAGER.get_user(uid)
     if db_user is None:
         await update.message.reply_text("You are not in database, begin use with /start command")
         return
@@ -277,10 +266,10 @@ async def mybooks(update, context) -> None:
     user = ChatClient(uid)
     user.from_dict(db_user)
     # this is duplicated
-    mongo_db_cursor = MONGODBMANAGER.get_user_books(uid)
+    mongo_db_cursor = config.MONGODBMANAGER.get_user_books(uid)
     owner_books = [item for item in mongo_db_cursor]
 
-    shared_db_cursor = MONGODBMANAGER.get_shared_books()
+    shared_db_cursor = config.MONGODBMANAGER.get_shared_books()
     shared_books = [item for item in shared_db_cursor]
 
     user_books = ""
@@ -354,17 +343,17 @@ async def mybooks(update, context) -> None:
 
 async def renamebook(update, context):
     uid = update.message.chat.id
-    db_user = MONGODBMANAGER.get_user(uid)
+    db_user = config.MONGODBMANAGER.get_user(uid)
     if db_user is None:
         await update.message.reply_text("You are not in database, begin use with /start command")
         return
 
     user = ChatClient(uid)
     user.from_dict(db_user)
-    mongo_db_cursor = MONGODBMANAGER.get_user_books(uid)
+    mongo_db_cursor = config.MONGODBMANAGER.get_user_books(uid)
     owner_books = [item for item in mongo_db_cursor]
 
-    shared_db_cursor = MONGODBMANAGER.get_shared_books()
+    shared_db_cursor = config.MONGODBMANAGER.get_shared_books()
     shared_books = [item for item in shared_db_cursor]
 
     return
@@ -391,7 +380,7 @@ async def changebook(update, context) -> None:
         return
 
     uid = update.message.chat.id
-    db_user = MONGODBMANAGER.get_user(uid)
+    db_user = config.MONGODBMANAGER.get_user(uid)
     if db_user is None:
         await update.message.reply_text("You are not in database, begin use with /start command")
         return
@@ -403,7 +392,7 @@ async def changebook(update, context) -> None:
         await update.message.reply_text("You are already reading this book")
         return
 
-    db_book = MONGODBMANAGER.get_book(new_book_index)
+    db_book = config.MONGODBMANAGER.get_book(new_book_index)
     if db_book is None:
         await update.message.reply_text(f"Book with index {new_book_index} does not exist")
         return
@@ -422,7 +411,7 @@ async def changebook(update, context) -> None:
         if user.read_progress.get(shared_book_title) is None:
             user.read_progress[shared_book_title] = 0
 
-    MONGODBMANAGER.update_user(user)
+    config.MONGODBMANAGER.update_user(user)
     await update.message.reply_text(f"Current book was successfully changed")
 
 
@@ -448,7 +437,7 @@ async def changechunksize(update, context) -> None:
         return
 
     uid = update.message.chat.id
-    db_user = MONGODBMANAGER.get_user(uid)
+    db_user = config.MONGODBMANAGER.get_user(uid)
     if db_user is None:
         await update.message.reply_text("You are not in database, begin use with /start command")
         return
@@ -458,7 +447,7 @@ async def changechunksize(update, context) -> None:
 
     user.read_chunk_size = new_chunk_size
 
-    MONGODBMANAGER.update_user(user)
+    config.MONGODBMANAGER.update_user(user)
 
     await update.message.reply_text(f"Chunk size successfully changed")
 
@@ -466,7 +455,7 @@ async def changechunksize(update, context) -> None:
 # TODO: add a flag to book doc as {shared: true/false}
 async def sharebook(update, context) -> None:
     uid = update.message.chat.id
-    db_user = MONGODBMANAGER.get_user(uid)
+    db_user = config.MONGODBMANAGER.get_user(uid)
     if db_user is None:
         await update.message.reply_text("You are not in database, begin use with /start command")
         return
@@ -493,18 +482,18 @@ async def sharebook(update, context) -> None:
         await update.message.reply_text(f"You do not own book with specified index {book_index}")
         return
 
-    db_book = MONGODBMANAGER.get_book(book_index)
+    db_book = config.MONGODBMANAGER.get_book(book_index)
     book = Book()
     book.from_dict(db_book)
 
-    flag = MONGODBMANAGER.update_book(book, query={"shared": True})
+    flag = config.MONGODBMANAGER.update_book(book, query={"shared": True})
     if flag is True:
         await update.message.reply_text(f"You successfully shared a book with index {book_index}")
 
 
 async def nextchunk(update, context) -> None:
     uid = update.message.chat.id
-    db_user = MONGODBMANAGER.get_user(uid)
+    db_user = config.MONGODBMANAGER.get_user(uid)
     if db_user is None:
         await update.message.reply_text("You are not in database, begin use with /start command")
         return
@@ -512,7 +501,7 @@ async def nextchunk(update, context) -> None:
     user = ChatClient(uid)
     user.from_dict(db_user)
 
-    db_book = MONGODBMANAGER.get_book(user.current_read_target)
+    db_book = config.MONGODBMANAGER.get_book(user.current_read_target)
     if db_book is None:
         await update.message.reply_text(f"Book with index {user.current_read_target} not found\nChange your current book")
         return
@@ -542,13 +531,13 @@ async def nextchunk(update, context) -> None:
     await update.message.reply_text(chunk_content)
 
     user.read_progress[db_book.get("title")] = chunk_end
-    MONGODBMANAGER.update_user(user)
+    config.MONGODBMANAGER.update_user(user)
 
 
 # stop using the bot
 async def pause(update, context) -> None:
     uid = update.message.chat.id
-    db_user = MONGODBMANAGER.get_user(uid)
+    db_user = config.MONGODBMANAGER.get_user(uid)
     if db_user is None:
         await update.message.reply_text("You are not in database, begin use with /start command")
         return
@@ -560,7 +549,7 @@ async def pause(update, context) -> None:
     if user.using_bot_flag is True:
         user.using_bot_flag = False
 
-        flag = MONGODBMANAGER.update_user(user)
+        flag = config.MONGODBMANAGER.update_user(user)
         if flag is True:
             await update.message.reply_text("You successfully paused your subscription.\nYou will stop receiving book chunks.")
 
@@ -570,7 +559,7 @@ async def pause(update, context) -> None:
 
 async def unpause(update, context) -> None:
     uid = update.message.chat.id
-    db_user = MONGODBMANAGER.get_user(uid)
+    db_user = config.MONGODBMANAGER.get_user(uid)
     if db_user is None:
         await update.message.reply_text("You are not in database, begin use with /start command")
         return
@@ -582,7 +571,7 @@ async def unpause(update, context) -> None:
     if user.using_bot_flag is False:
         user.using_bot_flag = True
 
-        flag = MONGODBMANAGER.update_user(user)
+        flag = config.MONGODBMANAGER.update_user(user)
         if flag is True:
             await update.message.reply_text("You successfully unpaused your subscription.\nYou will start receiving book chunks.")
 
@@ -601,14 +590,14 @@ async def error(update, context) -> None:
 async def feedchunk(context: CallbackContext):
     # LOGGER.info(f"Time: {datetime} Executing feedchunk command")
     # send message to all users
-    mongo_current_users_cursor = MONGODBMANAGER.get_current_users_ids()
+    mongo_current_users_cursor = config.MONGODBMANAGER.get_current_users_ids()
     current_users_ids = [i.get('_id') for i in mongo_current_users_cursor]
 
     for uid in current_users_ids:
         if uid is None:
             continue
 
-        db_user = MONGODBMANAGER.get_user(uid)
+        db_user = config.MONGODBMANAGER.get_user(uid)
 
         if db_user is None:
             print(f"User {uid} is not in database")
@@ -617,7 +606,7 @@ async def feedchunk(context: CallbackContext):
         user = ChatClient(uid)
         user.from_dict(db_user)
 
-        db_book = MONGODBMANAGER.get_book(user.current_read_target)
+        db_book = config.MONGODBMANAGER.get_book(user.current_read_target)
         if db_book is None:
             print(f"User {uid} does not have access to this book")
             continue
@@ -652,7 +641,7 @@ async def feedchunk(context: CallbackContext):
         await context.bot.send_message(chat_id=user._id, text=chunk_content)
 
         user.read_progress[db_book.get("title")] = chunk_end
-        MONGODBMANAGER.update_user(user)
+        config.MONGODBMANAGER.update_user(user)
 
 
 def main():

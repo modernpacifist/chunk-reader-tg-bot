@@ -1,8 +1,8 @@
 import os
 import logging
-import configparser
 
 from dotenv import load_dotenv
+from DBManager import MongoDBManager
 
 
 if os.path.isfile('.env'):
@@ -12,7 +12,7 @@ else:
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO,
-    handlers=[logging.FileHandler("/tmp/gcsync_debug.log"), logging.StreamHandler()])
+    handlers=[logging.FileHandler("/tmp/chunk_reader_tg_bot_debug.log"), logging.StreamHandler()])
 
 
 LOGGER = logging.getLogger(__name__)
@@ -24,28 +24,20 @@ DB_NAME = os.getenv('MONGO_DB_NAME')
 MONGO_USER_COLLECTION_NAME = os.getenv('MONGO_USER_COLLECTION_NAME')
 MONGO_BOOK_COLLECTION_NAME = os.getenv('MONGO_BOOK_COLLECTION_NAME')
 # optional variables for docker
+MONGO_HOST = os.getenv('MONGO_HOST')
 MONGO_USERNAME = os.getenv('MONGO_USERNAME')
 MONGO_PASSWORD = os.getenv('MONGO_PASSWORD')
 
 
-if not all([BOT_TOKEN, DB_URI, DB_NAME, MONGO_USER_COLLECTION_NAME, MONGO_BOOK_COLLECTION_NAME]):
+if not all([BOT_TOKEN, DB_NAME, MONGO_USER_COLLECTION_NAME, MONGO_BOOK_COLLECTION_NAME, MONGO_HOST]):
     raise Exception("Missing required environment variables")
 
 
-def mongo_config(filename="database.ini", section="mongo"):
-    parser = configparser.ConfigParser()
-
-    if os.path.exists(filename) is False:
-        LOGGER.critical(f"config.mongo_config: {filename} does not exist")
-
-    parser.read(filename)
-
-    db_config = {}
-    if parser.has_section(section):
-        params = parser.items(section)
-        for param in params:
-            db_config[param[0]] = param[1]
-    else:
-        raise Exception(f"Section {section} not found in the {filename} file")
-
-    return db_config
+MONGODBMANAGER = MongoDBManager(
+    db_name=DB_NAME,
+    db_user_collection_name=MONGO_USER_COLLECTION_NAME,
+    db_book_collection_name=MONGO_BOOK_COLLECTION_NAME,
+    username=MONGO_USERNAME,
+    password=MONGO_PASSWORD,
+    host=MONGO_HOST,
+)
