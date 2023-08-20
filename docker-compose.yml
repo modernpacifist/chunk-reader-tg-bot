@@ -13,7 +13,7 @@ services:
       MONGO_INITDB_DATABASE: ${MONGO_DB_NAME}
     volumes:
       - ./data:/data/db
-      - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js
 
   tg-bot:
     build: .
