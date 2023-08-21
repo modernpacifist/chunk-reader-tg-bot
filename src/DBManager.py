@@ -7,17 +7,17 @@ LOGGER = logging.getLogger(__name__)
 
 
 class MongoDBManager():
-    def __init__(self, db_uri, db_name, db_user_collection_name, db_book_collection_name, username=None, password=None):
-        self._db_uri = db_uri
-        # self._db_name = db_name
-        self._db = self._get_database(db_name, username, password)
+    def __init__(self, db_name, db_user_collection_name, db_book_collection_name, host='localhost', username=None, password=None):
+        # self._db_uri = db_uri
+        self._db_name = db_name
+        self._db = self._get_database(db_name, username, password, host=host)
         self._db_user_collection = self._get_collection(db_user_collection_name)
         self._db_book_collection = self._get_collection(db_book_collection_name)
 
     # private method
-    def _get_database(self, db_name, username, password) -> pymongo.database.Database:
+    def _get_database(self, db_name, username, password, host='localhost') -> pymongo.database.Database:
         try:
-            mongo_client = pymongo.MongoClient(self._db_uri, username=username, password=password, retryWrites=False)
+            mongo_client = pymongo.MongoClient(host=host, username=username, password=password, retryWrites=False)
             # return mongo_client[self._db_name]
             # mistake here
             return mongo_client[db_name]
