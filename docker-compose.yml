@@ -13,6 +13,7 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
     volumes:
       - ./data:/data/db
+      - ./db-tg-chunk-reader:/backup
 
   tg-bot:
     build: .
