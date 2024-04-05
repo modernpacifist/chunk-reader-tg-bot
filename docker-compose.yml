@@ -16,6 +16,7 @@ services:
       - ./db-tg-chunk-reader:/backup
 
   tg-bot:
+    restart: always
     build: .
     depends_on:
       - mongodb
