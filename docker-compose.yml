@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 version: '3.3'
 
 services:
@@ -19,3 +20,27 @@ services:
     build: .
     depends_on:
       - mongodb
+=======
+version: '3.3'
+
+services:
+  mongodb:
+    image: mongo
+    restart: always
+    ports:
+      - 27017:27017
+    env_file:
+      - .env
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+    volumes:
+      - ./data:/data/db
+      - ./db-tg-chunk-reader:/backup
+
+  tg-bot:
+    restart: always
+    build: .
+    depends_on:
+      - mongodb
+>>>>>>> bf5c920a3d5808758f8870cb0691ad2459218358
